@@ -16,4 +16,6 @@ struct Utilizador{
 	int bi;
 	int idade;
 };
+
+void listaUsers ()
 #endif
