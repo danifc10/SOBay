@@ -1,7 +1,8 @@
 #include "item.h"
 
-void mostraItems(){
-    item *p;
+void mostraItems(item *p){
+    printf("Comando valido\n");
+    
     if(p == NULL)
     {
         return;
@@ -20,7 +21,7 @@ void mostraItems(){
     }
 }
 
-
+//ainda nao funcional
 void addItem(item **p, int id, char *nome, char *catg, int vb, int cj, int tempo){
     if(*p == NULL)
     {

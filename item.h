@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #ifndef ITEM_H
 #define ITEM_H
 
@@ -12,6 +14,11 @@ struct Item{
 	int tempo;
 	ptr prox;
 };
-void addItem(item *p, int id, char *nome, char *catg, int vb, int cj, int tempo);
-void mostraItems();
+
+void mostraItems(item *p);
+
+//ainda nao funcional
+void addItem(item **p, int id, char *nome, char *catg, int vb, int cj, int tempo);
+
+
 #endif

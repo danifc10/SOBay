@@ -1,20 +1,20 @@
 #include <stdio.h>
 #include "item.h"
-item *p;
+#define LIST "list"
+//teste de main para receber comandos (neste caso o list)
+// para compilar: gcc cliente.c item.c item.h -o cliente
+// exemplo > $./cliente list
+//      output -> comando valido
+int main(int agrc, char *argv[]){
+    item *p;
 
-addItem(&p, 10, "ola", "categoria", 100, 200, 5);
-void comandosCliente(int agrc, char argv[]){
-    char comando[20+1];
-
-    switch (argv[0])
+    if(strcmp(argv[1], LIST) == 0)
     {
-    case "list":
-        mostraItems();
-        break;
-    
-    default:
-        printf("argumento invalido");
-        break;
+        mostraItems(p);
+    }else{
+        printf("comando invalido\n");
+        return 1;
     }
 
 }
+
