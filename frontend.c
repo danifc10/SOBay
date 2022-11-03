@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "user.h"
-
+#define YO 5
 
 user *recuperaUtilizadores(char *filename,int *tamanho){
 	FILE *f;
