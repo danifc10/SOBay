@@ -1,19 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include "user.h"
-#define LIST "list"
-#define LICAT "licat"
-#define LISEL "lisel"
-#define LIVAL "lival"
-#define LITIME "litime"
-#define TIME "time"
-#define BUY "buy"
-#define CASH "cash"
-#define ADD "add"
-#define SELL "sell"
+#include "item.h"
 
-cuperaUtilizadores(char *filename, int *tamanho)
+user *recuperaUtilizadores(char *filename, int *tamanho)
 {
 	FILE *f;
 	f = fopen(filename, "rt");
@@ -89,33 +81,98 @@ user *adicionaUser(user *a, int *tamanho, char n[], char pass[])
 	return a;
 }
 
-void leComandos(char comando)
+void leComandos(char *comando)
 {
-	if (strcmp(comando, "list") == 0)
+	char aux[100];
+	int count = 0; // variavel para contar os espaços em branco
+
+	for (int i = 0; i < strlen(comando) - 1; i++)
 	{
-		printf("valido");
+		if (isspace(comando[i]))
+		{
+			count++;
+		}
 	}
-	else if (strcmp(comando, "licat") == 0)
+
+	strcpy(aux, comando);
+
+	char argumento[20];
+	char valor[5], id[5];
+	char categoria[20];
+	char nome[20], preco[6], compreJa[6], duracao[6];
+
+	switch (count)
 	{
-		printf("valido");
-	}
-	else if (strcmp(comando, "lisel") == 0)
-	{
-		printf("valido");
-	}
-	else if (strcmp(comando, "litime") == 0)
-	{
-		printf("valido");
-	}
-	else if (strcmp(comando, "lival") == 0)
-	{
-		printf("valido");
+	case 0:
+		sscanf(aux, "%s", comando);
+
+		if (strcmp(comando, "list") == 0)
+		{
+			printf("\nvalido");
+		}
+		else if (strcmp(comando, "add") == 0)
+		{
+			printf("\n valido");
+		}
+		else
+			printf("erro no comando");
+		break;
+
+	case 1:
+
+		sscanf(aux, "%s %s", comando, argumento);
+		if (strcmp(comando, "licat") == 0)
+		{
+			printf("\nvalido comando: %s catedoria %s", comando, argumento);
+		}
+		else if (strcmp(comando, "lisel") == 0)
+		{
+			printf("\nvalido comando: %s user %s", comando, argumento);
+		}
+		else if (strcmp(comando, "litime") == 0)
+		{
+			printf("\nvalido comando: %s tempo %d", comando, atoi(argumento));
+		}
+		else if (strcmp(comando, "lival") == 0)
+		{
+			printf("\nvalido comando: %s precoMAx %d", comando, atoi(argumento));
+		}
+		else
+			printf("erro no comando");
+		break;
+
+	case 2:
+
+		sscanf(aux, "%s %s %s", comando, id, valor);
+		if (strcmp(comando, "buy") == 0)
+		{
+
+			printf("\nvalido comando: %s id %d valor %d", comando, atoi(id), atoi(valor));
+		}
+		else
+			printf("erro no comando");
+		break;
+
+	case 5:
+		sscanf(aux, "%s %s %s %s %s %s", comando, nome, categoria, preco, compreJa, duracao);
+
+		if (strcmp(comando, "sell") == 0)
+		{
+			printf("\n valido \n comado: %s \n nome: %s \ncatg: %s \npreco: %d \n compreJ: %d\n tempo: %d\n", comando, nome, categoria, atoi(preco), atoi(compreJa), atoi(duracao));
+		}
+		else
+		{
+			printf("erro no comando");
+		}
+
+	default:
+		break;
 	}
 }
 
-int main(int argc, char *argv[])
+int main()
 {
-	char comando[20];
+
 	if (argc == 3)
 	{
 		int tamanho = 0;
@@ -126,10 +183,12 @@ int main(int argc, char *argv[])
 	}
 	else
 	{
-		fgets(comando, 20 , stdin);
-		leComandos(comando);
+
 		printf("Falta de argumentos\n");
 	}
 
+	char comando[20];
+	fgets(comando, 200, stdin);
+	leComandos(comando);
 	return 0;
 }
