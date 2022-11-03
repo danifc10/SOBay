@@ -14,4 +14,6 @@ struct Utilizador{
 	int nItem;
 	int saldo;
 };
+
+void listaUsers ()
 #endif
