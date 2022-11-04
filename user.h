@@ -15,5 +15,5 @@ struct Utilizador{
 	int saldo;
 };
 
-void listaUsers ()
+void listaUsers ();
 #endif

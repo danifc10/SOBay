@@ -73,9 +73,9 @@ int main(int argc,char *argv[]){
 	if(argc==3){
 		int tamanho=0;
 		user *a=NULL;
-		a=recuperaUtilizadores("ficheiro_utilizadores.txt",&tamanho);
+		a=recuperaUtilizadores(USER_FILENAME,&tamanho);
 		a=adicionaUser(a,&tamanho,argv[1],argv[2]);
-		escreveFicheiro("ficheiro_utilizadores.txt",a,tamanho);
+		escreveFicheiro(USER_FILENAME,a,tamanho);
 	}else{
 		printf("Falta de argumentos\n");
 	}
