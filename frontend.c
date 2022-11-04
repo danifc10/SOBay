@@ -18,15 +18,19 @@ user *recuperaUtilizadores(char *filename, int *tamanho)
 	{
 		user *a = NULL;
 		int numUsers;
-		fscanf(f, "%d\n", &numUsers);
-		a = malloc(sizeof(user) * numUsers);
-
+		if(fscanf(f, "%d\n", &numUsers)==EOF){
+			numUsers=0;
+			a=malloc(sizeof(user));
+		}else{
+			a=malloc(sizeof(user)*numUsers);
+		}
+		
+		
 		if (a == NULL)
 		{
 			return NULL;
 		}
 		char buffer[500];
-
 		int i = 0;
 		while (feof(f) == 0)
 		{
@@ -34,7 +38,7 @@ user *recuperaUtilizadores(char *filename, int *tamanho)
 			sscanf(buffer, "%s %s %d", a[i].nome, a[i].password, &a[i].saldo);
 			i++;
 		}
-		*tamanho = numUsers;
+	*tamanho = numUsers;
 		fclose(f);
 
 		return a;
@@ -77,7 +81,6 @@ user *adicionaUser(user *a, int *tamanho, char n[], char pass[])
 		a[*tamanho] = *aux;
 		*tamanho = *tamanho + 1;
 	}
-	free(aux);
 	return a;
 }
 
@@ -192,6 +195,9 @@ int main(int argc , char *argv[])
 		a = recuperaUtilizadores("ficheiro_utilizadores.txt", &tamanho);
 		a = adicionaUser(a, &tamanho, argv[1], argv[2]);
 		escreveFicheiro("ficheiro_utilizadores.txt", a, tamanho);
+		char comando[20];
+		fgets(comando, 200, stdin);
+		leComandosCliente(comando);
 	}
 	else
 	{
@@ -199,9 +205,6 @@ int main(int argc , char *argv[])
 		printf("Falta de argumentos\n");
 	}
 	
-	char comando[20];
-	fgets(comando, 200, stdin);
-	leComandosCliente(comando);
 
 	return 0;
 }
