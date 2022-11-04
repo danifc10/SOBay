@@ -38,7 +38,7 @@ user *recuperaUtilizadores(char *filename, int *tamanho)
 			sscanf(buffer, "%s %s %d", a[i].nome, a[i].password, &a[i].saldo);
 			i++;
 		}
-	*tamanho = numUsers;
+		*tamanho = numUsers;
 		fclose(f);
 
 		return a;
