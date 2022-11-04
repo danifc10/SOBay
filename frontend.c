@@ -81,7 +81,7 @@ user *adicionaUser(user *a, int *tamanho, char n[], char pass[])
 	return a;
 }
 
-void leComandos(char *comando)
+int leComandosCliente(char *comando)
 {
 	char aux[100];
 	int count = 0; // variavel para contar os espaços em branco
@@ -114,8 +114,21 @@ void leComandos(char *comando)
 		{
 			printf("\n valido");
 		}
+		else if (strcmp(comando, "cash") == 0)
+		{
+			printf("\n valido");
+		}
+		else if (strcmp(comando, "time") == 0)
+		{
+			printf("\n valido");
+		}
+		else if (strcmp(comando, "exit") == 0)
+		{
+			printf("\n valido");
+			exit(1);
+		}
 		else
-			printf("erro no comando");
+			printf("Comando invalido");
 		break;
 
 	case 1:
@@ -123,22 +136,22 @@ void leComandos(char *comando)
 		sscanf(aux, "%s %s", comando, argumento);
 		if (strcmp(comando, "licat") == 0)
 		{
-			printf("\nvalido comando: %s catedoria %s", comando, argumento);
+			printf("\nvalido -  comando: %s --- categoria %s", comando, argumento);
 		}
 		else if (strcmp(comando, "lisel") == 0)
 		{
-			printf("\nvalido comando: %s user %s", comando, argumento);
+			printf("\nvalido -  comando: %s --- user %s", comando, argumento);
 		}
 		else if (strcmp(comando, "litime") == 0)
 		{
-			printf("\nvalido comando: %s tempo %d", comando, atoi(argumento));
+			printf("\nvalido - comando: %s --- tempo %d", comando, atoi(argumento));
 		}
 		else if (strcmp(comando, "lival") == 0)
 		{
-			printf("\nvalido comando: %s precoMAx %d", comando, atoi(argumento));
+			printf("\nvalido -  comando: %s --- precoMAx %d", comando, atoi(argumento));
 		}
 		else
-			printf("erro no comando");
+			printf("Comando invalido");
 		break;
 
 	case 2:
@@ -147,10 +160,10 @@ void leComandos(char *comando)
 		if (strcmp(comando, "buy") == 0)
 		{
 
-			printf("\nvalido comando: %s id %d valor %d", comando, atoi(id), atoi(valor));
+			printf("\nvalido -  comando: %s -- id %d -- valor %d", comando, atoi(id), atoi(valor));
 		}
 		else
-			printf("erro no comando");
+			printf("Comando invalido");
 		break;
 
 	case 5:
@@ -162,7 +175,7 @@ void leComandos(char *comando)
 		}
 		else
 		{
-			printf("erro no comando");
+			printf("Comando invalido");
 		}
 
 	default:
@@ -170,9 +183,8 @@ void leComandos(char *comando)
 	}
 }
 
-int main()
+int main(int argc , char *argv[])
 {
-
 	if (argc == 3)
 	{
 		int tamanho = 0;
@@ -186,9 +198,10 @@ int main()
 
 		printf("Falta de argumentos\n");
 	}
-
+	
 	char comando[20];
 	fgets(comando, 200, stdin);
-	leComandos(comando);
+	leComandosCliente(comando);
+
 	return 0;
 }
