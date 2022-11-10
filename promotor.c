@@ -1,21 +1,22 @@
 #include <stdio.h>
+#include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 #include <signal.h>
 #include <time.h>
-union sigval{
+/*union sigval{
 	int sival_int;
 	char sival_char[4098];
 	void *sival_ptr;
-}
-int main(int argc,int *argv[]){
-	int pid;
+};*/
+int main(int argc,char *argv[]){
+	int pid=atoi(argv[1]);
 	if(argc!=2){
 		printf("Falta de pid\n");
 		return 1;
 	}
-	pid=atoi(argv[1]);
+
 	union sigval valor;
 	char buffer[100];
 	char categoria[30];

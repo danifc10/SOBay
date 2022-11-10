@@ -2,6 +2,8 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+#include <signal.h>
+#include <time.h>
 int leComandosAdmin(char *comando)
 {
 	char aux[100];
@@ -88,7 +90,7 @@ int main(){
 	sa.sa_sigaction=mostra;
 	sa.sa_flags=SA_RESTART | SA_SIGINFO;
 	sigaction(SIGUSR1,&sa,NULL);
-	srand(time(NULL));
+	
 	do 
 	{	//fiz o ciclo porque
 		//o programa so é executado uma vez e dependendo do valor 
