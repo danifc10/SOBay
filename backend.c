@@ -99,7 +99,9 @@ int main(){
 		close(0);
 	}
 	do 
-	{	//fiz o ciclo porque
+	{	
+		setbuf(stdout,NULL);
+		//fiz o ciclo porque
 		//o programa so é executado uma vez e dependendo do valor 
 		//que a funcao retorna ele deixa ou nao o admin continuar a enserir comandos
 		printf("\n\n Deseja testar que funcionalidade?\n");
