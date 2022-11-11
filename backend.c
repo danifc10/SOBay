@@ -77,19 +77,10 @@ int leComandosAdmin(char *comando)
 		break;	
 	}
 }
-void mostra(int signal,siginfo_t *info,void *v){
-	printf("%s\n",info->si_value.sival_char);
-	srand(time(NULL));
-}
+
 int main(){
 	char comando[20];
 	int aux = 0;
-	int pid;
-	struct sigaction sa ;
-	setbuf(stdout,NULL);
-	sa.sa_sigaction=mostra;
-	sa.sa_flags=SA_RESTART | SA_SIGINFO;
-	sigaction(SIGUSR1,&sa,NULL);
 	
 	do 
 	{	//fiz o ciclo porque
