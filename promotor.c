@@ -6,7 +6,7 @@
 #include <signal.h>
 #include <time.h>
 int main(int argc,char *argv[]){
-
+	setbuf(stdout,NULL);
 	char buffer[100];
 	char categoria[30];
 	int promocao,tempo;
@@ -19,6 +19,8 @@ int main(int argc,char *argv[]){
 	while(feof(f)==0){
 		fgets(buffer,100,f);
 		//sscanf(buffer,"%s %d %d",categoria,&promocao,&tempo);
+		fprintf(stdout,buffer);
+		fflush(stdout);
 	}
 	fclose(f);
 	

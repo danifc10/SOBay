@@ -81,7 +81,22 @@ int leComandosAdmin(char *comando)
 int main(){
 	char comando[20];
 	int aux = 0;
-	
+	//promotor e backend
+	int fd[2];
+	pipe(fd);
+	int id=fork();
+	if(id<0){
+		printf("\nerro fork()\n");
+	}else if(id==0){//filho
+		close(0);
+		dup(fd[0]);
+		close(fd[0]);
+		close(fd[1]);
+		execl("./promotor","promotor",NULL);
+		
+	}else{
+		close(0);
+	}
 	do 
 	{	//fiz o ciclo porque
 		//o programa so é executado uma vez e dependendo do valor 
