@@ -4,6 +4,7 @@
 #include <string.h>
 #include <signal.h>
 #include <time.h>
+#include <ctype.h>
 int leComandosAdmin(char *comando)
 {
 	char aux[100];
