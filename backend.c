@@ -96,8 +96,6 @@ int main(){
 		execl("./promotor","promotor",NULL);
 		
 	}else{
-		close(0);
-	}
 	do 
 	{	//fiz o ciclo porque
 		//o programa so é executado uma vez e dependendo do valor 
@@ -107,6 +105,7 @@ int main(){
 		aux = leComandosAdmin(comando);
 
 	}while (aux != 0);
+	}
 	
 	return 0;
 }

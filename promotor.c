@@ -18,9 +18,12 @@ int main(int argc,char *argv[]){
 	}
 	while(feof(f)==0){
 		fgets(buffer,100,f);
-		//sscanf(buffer,"%s %d %d",categoria,&promocao,&tempo);
+		sscanf(buffer,"%s %d %d",categoria,&promocao,&tempo);
+		printf("\n");
 		fprintf(stdout,buffer);
+		
 		fflush(stdout);
+		printf("\n");
 	}
 	fclose(f);
 	
