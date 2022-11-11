@@ -82,7 +82,20 @@ int leComandosAdmin(char *comando)
 int main(){
 	char comando[20];
 	int aux = 0;
-		//promotor e backend
+
+	do 
+	{	
+		setbuf(stdout,NULL);
+		//fiz o ciclo porque
+		//o programa so é executado uma vez e dependendo do valor 
+		//que a funcao retorna ele deixa ou nao o admin continuar a enserir comandos
+		printf("\n\n Deseja testar que funcionalidade?\n");
+		fgets(comando, 200, stdin);
+		aux = leComandosAdmin(comando);
+	
+
+	}while (aux != 0);
+			//promotor e backend
 	int fd[2];
 	pipe(fd);
 	int id=fork();
@@ -98,19 +111,6 @@ int main(){
 	}else{
 		close(0);
 	}
-	do 
-	{	
-		setbuf(stdout,NULL);
-		//fiz o ciclo porque
-		//o programa so é executado uma vez e dependendo do valor 
-		//que a funcao retorna ele deixa ou nao o admin continuar a enserir comandos
-		printf("\n\n Deseja testar que funcionalidade?\n");
-		fgets(comando, 200, stdin);
-		aux = leComandosAdmin(comando);
-	
-
-	}while (aux != 0);
-	
 	
 	return 0;
 }
