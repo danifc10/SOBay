@@ -110,6 +110,9 @@ int main(){
 		
 	}else{
 		close(0);
+		char mensagem[100];
+		int tamanho=read(fd[1],mensagem,sizeof(mensagem));
+		printf("mensagem: %s",mensagem);
 	}
 	
 	return 0;

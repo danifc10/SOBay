@@ -21,8 +21,6 @@ int main(int argc,char *argv[]){
 		sscanf(buffer,"%s %d %d",categoria,&promocao,&tempo);
 		printf("\n");
 		fprintf(stdout,buffer);
-		
-		fflush(stdout);
 		printf("\n");
 	}
 	fclose(f);
