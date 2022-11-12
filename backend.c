@@ -226,7 +226,7 @@ int main()
 
 	for(int i=0;i<10;i++){
 		if(pid_promotor[i]!=0){
-			terminaPromotor(fd_p2b);
+			//terminaPromotor(fd_p2b);
 		}
 	}
 
