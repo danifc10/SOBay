@@ -20,7 +20,7 @@ int main(int argc,char *argv[]){
 		fgets(buffer,100,f);
 		//sscanf(buffer,"%s %d %d",categoria,&promocao,&tempo);
 		printf("\n");
-		fprintf(stdout,"%d",getpid());
+		fprintf(stdout,buffer);
 		printf("\n");
 	}
 	fclose(f);
