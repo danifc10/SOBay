@@ -231,7 +231,7 @@ int main()
 		strcpy(outputPromotores,recebePromotor(fd_p2b));
 		printf("\nmsg: %s\n",outputPromotores);
 		terminaPromotor(fd_p2b);
-		aux=leComandosAdmin(comando);
+		aux=leComandosAdmin(outputPromotores);
 
 	} while (aux != 0);
 	printf("\n===========\n");
