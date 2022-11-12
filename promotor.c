@@ -17,9 +17,9 @@ int main(int argc,char *argv[]){
 		return 0;
 	}
 	while(feof(f)==0){
-		fgets(buffer,100,f);
+		//fgets(buffer,100,f);
 		//sscanf(buffer,"%s %d %d",categoria,&promocao,&tempo);
-		sprintf(buffer,"%d",getpid());
+		buffer=(char*)getpid();
 		fprintf(stdout,buffer);
 	}
 	fclose(f);
