@@ -182,8 +182,14 @@ char * recebePromotor(int fd_p2b[2]) {
 	return strtok(msg,"\n");
 }
 
-void terminaPromotor(int pid){
+int terminaPromotor(int pid){
+	int estadoPromotor;
 
+    write(backend[ESCRITA], "close\n", strlen("close\n"));
+
+    wait(&estadoPromotor);
+
+    return estadoPromotor;
 }
 int main()
 {
@@ -228,7 +234,7 @@ int main()
 
 	for(int i=0;i<10;i++){
 		if(pid_promotor[i]!=0){
-			//terminaPromotor(fd_p2b);
+			terminaPromotor(fd_p2b);
 		}
 	}
 
