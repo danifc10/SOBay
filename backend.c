@@ -221,8 +221,6 @@ int main()
 	strcpy(outputPromotores,recebePromotor(fd_p2b));
 	do
 	{
-	
-		setbuf(stdout,NULL);
 		printf("\nbackend pid: %d pid: %d\n",getpid(),pid);
 		leFicheiroItem("items.txt");
 		printf("\n\n Deseja testar que funcionalidade?\n");
