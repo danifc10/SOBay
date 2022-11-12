@@ -179,7 +179,7 @@ int executaPromotor(int fd_p2b[2]){
 }
 char * recebePromotor(int fd_p2b[2]) {
 	char msg[100];
-	read(fd_p2b[0],msg,99);
+	read(fd_p2b[0],msg,100);
 	return strtok(msg,"\n");
 }
 
@@ -230,13 +230,12 @@ int main()
 		fgets(comando, 200, stdin);
 		aux = leComandosAdmin(comando);
 		strcpy(outputPromotores,recebePromotor(fd_p2b));
-		printf("\nmsg: %s pid: %d\n",outputPromotores,getpid());
 
 	} while (aux != 0);
 
 	for(int i=0;i<10;i++){
 		if(pid_promotor[i]!=0){
-			terminaPromotor(fd_p2b);
+			printf("%d",terminaPromotor(fd_p2b));
 		}
 	}
 
