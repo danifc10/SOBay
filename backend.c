@@ -229,7 +229,7 @@ int main()
 		printf("\n\n Deseja testar que funcionalidade?\n");
 		fgets(comando, 200, stdin);
 		aux = leComandosAdmin(comando);
-		//strcpy(outputPromotores,recebePromotor(fd_p2b));
+		strcpy(outputPromotores,recebePromotor(fd_p2b));
 	
 
 	} while (aux != 0);
