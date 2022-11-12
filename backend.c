@@ -206,13 +206,6 @@ int main()
 		printf("erro ao criar pipe\n");
 		exit(1);
 	}
-	int pid=executaPromotor(fd_p2b);
-	for(int i=0;i<10;i++){
-		if(pid_promotor[i]==0){
-			pid_promotor[i]=pid;
-			break;
-		}
-	}
 	/*
 		 //para testar a leitura e o save dos items ::
 		// leFicheiroItem("items.txt");
@@ -220,6 +213,13 @@ int main()
 	*/
 	do
 	{
+		int pid=executaPromotor(fd_p2b);
+	for(int i=0;i<10;i++){
+		if(pid_promotor[i]==0){
+			pid_promotor[i]=pid;
+			break;
+		}
+	}
 		setbuf(stdout,NULL);
 		printf("\nbackend pid: %d pid: %d\n",getpid(),pid);
 		leFicheiroItem("items.txt");
