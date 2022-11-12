@@ -1,0 +1,2 @@
+1 cadeira casa 200 300 5 daniela dani
+2 computador informatica 12345 54321 tiago tiagooo

@@ -7,18 +7,16 @@
 typedef struct Item item, *ptr;
 struct Item{
 	int id;
-	char *nome;
-	char *categoria;
+	char nome[20+1];
+	char categoria[20+1];
 	int valor_base;
 	int compra_ja;
 	int tempo;
 	ptr prox;
 };
 
-void mostraItems(item *p);
-
-//ainda nao funcional
-void addItem(item **p, int id, char *nome, char *catg, int vb, int cj, int tempo);
-
+void mostraItem();
+void adicionaItem(item **i, char *n, int id, char *ctg, int vb, int cj, int tmp);
+void leFicheiroItem(char *nomeFich);
 
 #endif
