@@ -183,14 +183,8 @@ char * recebePromotor(int fd_p2b[2]) {
 	return strtok(msg,"\n");
 }
 
-int terminaPromotor(int fd_p2b[2]){
-	int estadoPromotor;
-	printf("\npid: %d\n",getpid());
-    write(fd_p2b[1], "close\n", strlen("close\n"));
+void terminaPromotor(int fd_p2b[2]){
 
-    wait(&estadoPromotor);
-
-    return estadoPromotor;
 }
 int main()
 {
