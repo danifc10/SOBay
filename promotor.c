@@ -24,6 +24,6 @@ int main(int argc,char *argv[]){
 		printf("\n");
 	}
 	fclose(f);
-	
+	do{}while(1);
 	return 0;
 }
