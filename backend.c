@@ -218,6 +218,8 @@ int main()
 		// leFicheiroItem("items.txt");
 		// mostraItem();
 	*/
+	strcpy(outputPromotores,recebePromotor(fd_p2b));
+		printf("\nmsg:%s\n",outputPromotores);
 	do
 	{
 		printf("\nbackend pid: %d pid: %d\n",getpid(),pid);
@@ -225,8 +227,6 @@ int main()
 		printf("\n\n Deseja testar que funcionalidade?\n");
 		fgets(comando, 200, stdin);
 		aux = leComandosAdmin(comando);
-		strcpy(outputPromotores,recebePromotor(fd_p2b));
-	printf("\nmsg:%s\n",outputPromotores);
 	} while (aux != 0);
 	
 	for(int i=0;i<10;i++){
