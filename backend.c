@@ -230,9 +230,9 @@ int main()
 		aux = leComandosAdmin(comando);
 		strcpy(outputPromotores,recebePromotor(fd_p2b));
 		printf("msg: %s\n",outputPromotores);
-
+		terminaPromotor(fd_p2b);
 	} while (aux != 0);
-
+	printf("\n===========\n");
 	for(int i=0;i<10;i++){
 		if(pid_promotor[i]!=0){
 			terminaPromotor(fd_p2b);
