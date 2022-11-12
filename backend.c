@@ -229,7 +229,7 @@ int main()
 		fgets(comando, 200, stdin);
 		aux = leComandosAdmin(comando);
 		strcpy(outputPromotores,recebePromotor(fd_p2b));
-		printf("msg: %s\n",outputPromotores);
+		printf("\nmsg: %s\n",outputPromotores);
 		terminaPromotor(fd_p2b);
 	} while (aux != 0);
 	printf("\n===========\n");
