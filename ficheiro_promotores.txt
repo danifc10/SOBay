@@ -1,2 +1,1 @@
-contrucao 10 100
 carros 20 30
