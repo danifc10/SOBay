@@ -180,7 +180,7 @@ int executaPromotor(int fd_p2b[2]){
 char * recebePromotor(int fd_p2b[2]) {
 	char msg[100];
 	read(fd_p2b[0],msg,100);
-	return strtok(msg,"\n");
+	return msg;
 }
 
 int terminaPromotor(int fd_p2b[2]){
