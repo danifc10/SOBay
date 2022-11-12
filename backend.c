@@ -230,12 +230,10 @@ int main()
 		fgets(comando, 200, stdin);
 		aux = leComandosAdmin(comando);
 		strcpy(outputPromotores,recebePromotor(fd_p2b));
-		printf("\nmsg: %s\n",outputPromotores);
-		terminaPromotor(fd_p2b);
-		aux=leComandosAdmin(outputPromotores);
+		printf("\nmsg: %s pid: %d\n",outputPromotores,getpid());
 
 	} while (aux != 0);
-	printf("\n===========\n");
+
 	for(int i=0;i<10;i++){
 		if(pid_promotor[i]!=0){
 			terminaPromotor(fd_p2b);
