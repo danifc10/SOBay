@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
-#include <time.h>
+#include <sys/wait.h>
 
 item *i;
 void mostraItem()
