@@ -161,11 +161,53 @@ int leComandosAdmin(char *comando)
 	}
 }
 
+int executaPromotor(int fd_p2b[2]){
+	int f=fork();
+	if(f==-1){
+		printf("erro ao criar filho\n");
+	}else if(f==0){
+		close(1);
+		dup(fd_p2b[1]);
+		close(fd_p2b[0]);
+		close(fd_p2b[1]);
+		execl("./promotor","promotor",NULL);
+	}
+	return f;
+}
+char * recebePromotor(int fd_p2b[2]) {
+	char msg[100];
+	read(fd_p2b[0],msg,99);
+	return strtok(msg,"\n");
+}
+
+void terminaPromotor(int pid){
+
+}
 int main()
 {
+	char outputPromotores[100];
+	//maximo de promotores
+	int pid_promotor[10];
+	for(int i=0;i<10;i++){
+		pid_promotor[i]=0;
+	}
 	char comando[20];
 	int aux = 0;
-
+	//criar 2 unnamed pipes
+	int fd_p2b[2];
+	//pipes
+	int Rpipe=pipe(fd_p2b[2]);
+	if(Rpipe==-1){
+		printf("erro ao criar pipe\n");
+		exit(1);
+	}
+	int pid=executaPromotor(fd_p2b);
+	for(int i=0;i<10;i++){
+		if(pid_promotor[i]==0){
+			pid_promotor[i]=pid;
+			break;
+		}
+	}
 	/*
 		 //para testar a leitura e o save dos items ::
 		// leFicheiroItem("items.txt");
@@ -177,8 +219,16 @@ int main()
 		printf("\n\n Deseja testar que funcionalidade?\n");
 		fgets(comando, 200, stdin);
 		aux = leComandosAdmin(comando);
+		strcpy(outputPromotores,recebePromotor(fd_p2b));
+		printf("msg: %s\n",outputPromotores);
 
 	} while (aux != 0);
+
+	for(int i=0;i<10;i++){
+		if(pid_promotor[i]!=0){
+			terminaPromotor(fd_p2b);
+		}
+	}
 
 	return 0;
 }
