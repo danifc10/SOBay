@@ -5,6 +5,8 @@
 #include "user.h"
 #include "item.h"
 
+
+
 user *recuperaUtilizadores(char *filename, int *tamanho)
 {
 	FILE *f;
@@ -100,7 +102,7 @@ int leComandosCliente(char *comando)
 	strcpy(aux, comando);
 
 	char argumento[20];
-		char valor[5], id[5];
+	char valor[5], id[5];
 	char categoria[20];
 	char nome[20], preco[6], compreJa[6], duracao[6];
 
@@ -201,7 +203,6 @@ int main(int argc , char *argv[])
 	}
 	else
 	{
-
 		printf("Falta de argumentos\n");
 	}
 	
