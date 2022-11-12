@@ -185,7 +185,7 @@ char * recebePromotor(int fd_p2b[2]) {
 
 int terminaPromotor(int fd_p2b[2]){
 	int estadoPromotor;
-
+	printf("\npid: %d\n",getpid());
     write(fd_p2b[1], "close\n", strlen("close\n"));
 
     wait(&estadoPromotor);
@@ -224,6 +224,7 @@ int main()
 	*/
 	do
 	{
+		printf("\nbackend pid: %d pid: %d\n",getpid(),pid);
 		leFicheiroItem("items.txt");
 		printf("\n\n Deseja testar que funcionalidade?\n");
 		fgets(comando, 200, stdin);
