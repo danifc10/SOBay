@@ -206,27 +206,28 @@ int main()
 		printf("erro ao criar pipe\n");
 		exit(1);
 	}
-	/*
-		 //para testar a leitura e o save dos items ::
-		// leFicheiroItem("items.txt");
-		// mostraItem();
-	*/
-	do
-	{
-		int pid=executaPromotor(fd_p2b);
+	int pid=executaPromotor(fd_p2b);
 	for(int i=0;i<10;i++){
 		if(pid_promotor[i]==0){
 			pid_promotor[i]=pid;
 			break;
 		}
 	}
+	/*
+		 //para testar a leitura e o save dos items ::
+		// leFicheiroItem("items.txt");
+		// mostraItem();
+	*/
+	strcpy(outputPromotores,recebePromotor(fd_p2b));
+	do
+	{
+	
 		setbuf(stdout,NULL);
 		printf("\nbackend pid: %d pid: %d\n",getpid(),pid);
 		leFicheiroItem("items.txt");
 		printf("\n\n Deseja testar que funcionalidade?\n");
 		fgets(comando, 200, stdin);
 		aux = leComandosAdmin(comando);
-		strcpy(outputPromotores,recebePromotor(fd_p2b));
 		printf("\nmsg:%s\n",outputPromotores);
 	} while (aux != 0);
 	for(int i=0;i<10;i++){
