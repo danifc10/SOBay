@@ -228,7 +228,7 @@ int main()
 	printf("\nmsg:%s\n",outputPromotores);
 	for(int i=0;i<10;i++){
 		if(pid_promotor[i]!=0){
-			printf("%d",terminaPromotor(fd_p2b));
+			terminaPromotor(fd_p2b);
 		}
 	}
 
