@@ -2,13 +2,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <unistd.h>
 #include "user.h"
 #include "item.h"
 
-
-
 user *recuperaUtilizadores(char *filename, int *tamanho)
 {
+	char buffer[500];
 	FILE *f;
 	f = fopen(filename, "rt");
 	if (f == NULL)
@@ -19,30 +19,22 @@ user *recuperaUtilizadores(char *filename, int *tamanho)
 	else
 	{
 		user *a = NULL;
-		int numUsers;
-		if(fscanf(f, "%d\n", &numUsers)==EOF){
-			numUsers=0;
-			a=malloc(sizeof(user));
-		}else{
-			a=malloc(sizeof(user)*numUsers);
-		}
-		
-		
+		printf("tamanho:%d\n",tamanho);
+		a=malloc(tamanho * sizeof(user));
 		if (a == NULL)
 		{
 			return NULL;
 		}
-		char buffer[500];
+		if(tamanho>0){
 		int i = 0;
-		while (feof(f) == 0)
+		while (i<tamanho)
 		{
 			fgets(buffer, 500, f);
 			sscanf(buffer, "%s %s %d", a[i].nome, a[i].password, &a[i].saldo);
 			i++;
 		}
-		*tamanho = numUsers;
+		}
 		fclose(f);
-
 		return a;
 	}
 }
@@ -56,11 +48,12 @@ void escreveFicheiro(char *filename, user *a, int tamanho)
 		return;
 	}
 	int i = 0;
-	fprintf(f, "%d\n", tamanho);
 	while (i < tamanho)
 	{
 		fprintf(f, "%s %s %d\n", a[i].nome, a[i].password, a[i].saldo);
-
+		printf("%s\n",a[i].nome);
+		printf("%s\n",a[i].password);
+		printf("%d\n",a[i].saldo);
 		i++;
 	}
 	fclose(f);
@@ -80,8 +73,7 @@ user *adicionaUser(user *a, int *tamanho, char n[], char pass[])
 		strcpy(aux->nome, n);
 		strcpy(aux->password, pass);
 		aux->saldo = 0;
-		a[*tamanho] = *aux;
-		*tamanho = *tamanho + 1;
+		a[*tamanho-1] = *aux;
 	}
 	return a;
 }
@@ -187,14 +179,30 @@ int leComandosCliente(char *comando)
 		break;
 	}
 }
-
+int file_length(char *filename){
+	char buffer[500];
+	FILE *f;
+	f = fopen(filename,"rt");
+	if(f==NULL){
+		printf("ERRO A ABRIR FICHEIRO\n");
+		exit(1);
+	}
+	int i=0;
+	while(feof(f)==0){
+		fgets(buffer,500,f);
+		i++;
+	}
+	fclose(f);
+	return i;
+}
 int main(int argc , char *argv[])
 {
 	if (argc == 3)
 	{
-		int tamanho = 0;
+		int tamanho = file_length("ficheiro_utilizadores.txt");
 		user *a = NULL;
-		a = recuperaUtilizadores("ficheiro_utilizadores.txt", &tamanho);
+		a = recuperaUtilizadores("ficheiro_utilizadores.txt", tamanho);
+		
 		a = adicionaUser(a, &tamanho, argv[1], argv[2]);
 		escreveFicheiro("ficheiro_utilizadores.txt", a, tamanho);
 		char comando[20];

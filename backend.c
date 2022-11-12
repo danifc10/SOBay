@@ -1,18 +1,14 @@
 #include <stdio.h>
+#include <ctype.h>
 #include "item.h"
 #include "user.h"
 #include <stdlib.h>
 #include <stdio.h>
-#include <string.h>
-#include <ctype.h>
-
-#include "item.h"
-
 
 item *i;
 void mostraItem()
 {
-	while(i)
+	while (i)
 	{
 		printf("\n\nID: %d\n", i->id);
 		printf("Nome: %s\n", i->nome);
@@ -22,40 +18,42 @@ void mostraItem()
 		printf("Tempo: %d\n", i->tempo);
 
 		i = i->prox;
-
 	}
 }
 
 void adicionaItem(item **i, char *n, int id, char *ctg, int vb, int cj, int tmp)
 {
 	item *aux, *new = malloc(sizeof(item));
-	
-	if(new){
-		strcpy((new->nome),n);
-        strcpy((new->categoria),ctg);
+
+	if (new)
+	{
+		strcpy((new->nome), n);
+		strcpy((new->categoria), ctg);
 		new->id = id;
 		new->tempo = tmp;
 		new->valor_base = vb;
 		new->compra_ja = cj;
 		new->prox = NULL;
-		
-		if(*i == NULL){
+
+		if (*i == NULL)
+		{
 			*i = new;
-		}else{
+		}
+		else
+		{
 			aux = *i;
-			while(aux->prox)
+			while (aux->prox)
 			{
 				aux = aux->prox;
 			}
-			
+
 			aux->prox = new;
 		}
-	
-	}else{
+	}
+	else
+	{
 		printf("erro ao alocar memoria\n");
 	}
-	
-	
 }
 
 void leFicheiroItem(char *nomeFich)
@@ -80,13 +78,11 @@ void leFicheiroItem(char *nomeFich)
 
 		fgets(Linha, 100, f);
 		sscanf(Linha, "%d %s %s %d %d %d %s %s", &id, &nome, &categoria, &valor_base, &compra_ja, &tempo, &nomeU, &licitador);
-		
-	    adicionaItem(&i, nome, id, categoria, valor_base, compra_ja, tempo);		
-        
+
+		adicionaItem(&i, nome, id, categoria, valor_base, compra_ja, tempo);
 	}
 
 	fclose(f);
-
 }
 
 int leComandosAdmin(char *comando)
@@ -170,13 +166,19 @@ int main()
 	char comando[20];
 	int aux = 0;
 
-	do{
-		leFicheiroItem("item.txt");
+	/*
+		 //para testar a leitura e o save dos items ::
+		// leFicheiroItem("items.txt");
+		// mostraItem();
+	*/
+	do
+	{
+		leFicheiroItem("items.txt");
 		printf("\n\n Deseja testar que funcionalidade?\n");
 		fgets(comando, 200, stdin);
 		aux = leComandosAdmin(comando);
 
-	}while (aux != 0); 
+	} while (aux != 0);
 
 	return 0;
 }
