@@ -224,7 +224,7 @@ int main()
 	*/
 	do
 	{
-		printf("\nno backend pid promotor:%d pid backend: %d\n",pid,getpid());
+		
 		leFicheiroItem("items.txt");
 		printf("\n\n Deseja testar que funcionalidade?\n");
 		fgets(comando, 200, stdin);
