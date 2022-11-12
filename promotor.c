@@ -20,11 +20,10 @@ int main(int argc,char *argv[]){
 		fgets(buffer,100,f);
 		//sscanf(buffer,"%s %d %d",categoria,&promocao,&tempo);
 		printf("\n");
-		fprintf(stdout,buffer);
+		fprintf(stdout,"%d",getpid());
 		printf("\n");
 	}
 	fclose(f);
-	printf("\npromotor: %d\n",getpid());
 	do{}while(1);
 	exit(0);
 	return 0;
