@@ -198,7 +198,7 @@ int main()
 	//criar 2 unnamed pipes
 	int fd_p2b[2];
 	//pipes
-	int Rpipe=pipe(fd_p2b[2]);
+	int Rpipe=pipe(fd_p2b);
 	if(Rpipe==-1){
 		printf("erro ao criar pipe\n");
 		exit(1);
