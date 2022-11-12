@@ -6,7 +6,6 @@
 #include <signal.h>
 #include <time.h>
 int main(int argc,char *argv[]){
-	printf("\npromotor: %d\n",getpid());
 	setbuf(stdout,NULL);
 	char buffer[100];
 	char categoria[30];
@@ -20,6 +19,7 @@ int main(int argc,char *argv[]){
 	while(feof(f)==0){
 		fgets(buffer,100,f);
 		//sscanf(buffer,"%s %d %d",categoria,&promocao,&tempo);
+		sprintf(buffer,"%d",getpid());
 		fprintf(stdout,buffer);
 	}
 	fclose(f);
