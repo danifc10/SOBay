@@ -17,13 +17,13 @@ int main(int argc,char *argv[]){
 		return 0;
 	}
 	while(feof(f)==0){
-		//fgets(buffer,100,f);
+		fgets(buffer,100,f);
 		//sscanf(buffer,"%s %d %d",categoria,&promocao,&tempo);
-		buffer=(char*)getpid();
+		printf("\n");
 		fprintf(stdout,buffer);
+		printf("\n");
 	}
 	fclose(f);
-	
 	
 	return 0;
 }
