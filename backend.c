@@ -182,10 +182,10 @@ char * recebePromotor(int fd_p2b[2]) {
 	return strtok(msg,"\n");
 }
 
-int terminaPromotor(int pid){
+int terminaPromotor(int fd_p2b[2]){
 	int estadoPromotor;
 
-    write(backend[ESCRITA], "close\n", strlen("close\n"));
+    write(fd_p2b[1], "close\n", strlen("close\n"));
 
     wait(&estadoPromotor);
 
