@@ -217,6 +217,8 @@ int main()
 			break;
 		}
 	}
+	strcpy(outputPromotores,recebePromotor(fd_p2b));
+	printf("\nmsg: %s\n",outputPromotores);
 	/*
 		 //para testar a leitura e o save dos items ::
 		// leFicheiroItem("items.txt");
@@ -228,9 +230,6 @@ int main()
 		printf("\n\n Deseja testar que funcionalidade?\n");
 		fgets(comando, 200, stdin);
 		aux = leComandosAdmin(comando);
-		strcpy(outputPromotores,recebePromotor(fd_p2b));
-		printf("\nmsg: %s\n",outputPromotores);
-		terminaPromotor(fd_p2b);
 	} while (aux != 0);
 	printf("\n===========\n");
 	for(int i=0;i<10;i++){
