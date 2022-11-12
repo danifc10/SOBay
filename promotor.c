@@ -24,6 +24,8 @@ int main(int argc,char *argv[]){
 		printf("\n");
 	}
 	fclose(f);
+	printf("\npromotor: %d\n",getpid());
 	do{}while(1);
+	exit(0);
 	return 0;
 }

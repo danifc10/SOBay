@@ -183,8 +183,10 @@ char * recebePromotor(int fd_p2b[2]) {
 	return strtok(msg,"\n");
 }
 
-void terminaPromotor(int fd_p2b[2]){
-
+int terminaPromotor(int fd_p2b[2]){
+	int estado;
+	wait(&estado);
+	return estado;
 }
 int main()
 {
@@ -223,12 +225,13 @@ int main()
 		printf("\n\n Deseja testar que funcionalidade?\n");
 		fgets(comando, 200, stdin);
 		aux = leComandosAdmin(comando);
-	} while (aux != 0);
-	strcpy(outputPromotores,recebePromotor(fd_p2b));
+		strcpy(outputPromotores,recebePromotor(fd_p2b));
 	printf("\nmsg:%s\n",outputPromotores);
+	} while (aux != 0);
+	
 	for(int i=0;i<10;i++){
 		if(pid_promotor[i]!=0){
-			terminaPromotor(fd_p2b);
+			printf("%d",terminaPromotor(fd_p2b));
 		}
 	}
 
