@@ -224,13 +224,14 @@ int main()
 	*/
 	do
 	{
+		printf("\nno backend pid promotor:%d pid backend: %d\n",pid,getpid());
 		leFicheiroItem("items.txt");
 		printf("\n\n Deseja testar que funcionalidade?\n");
 		fgets(comando, 200, stdin);
 		aux = leComandosAdmin(comando);
 		strcpy(outputPromotores,recebePromotor(fd_p2b));
 		printf("\nmsg: %s\n",outputPromotores);
-	
+
 	} while (aux != 0);
 	printf("\n===========\n");
 	for(int i=0;i<10;i++){

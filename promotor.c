@@ -6,6 +6,7 @@
 #include <signal.h>
 #include <time.h>
 int main(int argc,char *argv[]){
+	printf("\npromotor: %d\n",getpid());
 	setbuf(stdout,NULL);
 	char buffer[100];
 	char categoria[30];
