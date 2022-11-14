@@ -173,7 +173,7 @@ int executaPromotor(int fd_p2b[2]){
 		dup(fd_p2b[1]);
 		close(fd_p2b[0]);
 		close(fd_p2b[1]);
-		execl("promotor_oficial","promotor_oficial",NULL);
+		execl("./promotor_oficial","promotor_oficial",NULL);
 	}
 	return f;
 }
