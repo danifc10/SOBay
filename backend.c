@@ -225,12 +225,18 @@ int main()
 		printf("\n\n Deseja testar que funcionalidade?\n");
 		fgets(comando, 200, stdin);
 		aux = leComandosAdmin(comando);
-		strcpy(outputPromotores,recebePromotor(fd_p2b));
-		if(strlen(outputPromotores)>0){
-			printf("\nmsg:%s\n",outputPromotores);
-		}
 	} while (aux != 0);
-		
+		char resposta;
+		printf("deseja lançar um promotor ?(y/n)\n");
+		scanf("%c",&resposta);
+		if(resposta=='y'){
+			while(1){
+				strcpy(outputPromotores,recebePromotor(fd_p2b));
+				if(strlen(outputPromotores)>0){
+					printf("\nmsg:%s\n",outputPromotores);
+				}
+			}
+		}
 	for(int i=0;i<10;i++){
 		if(pid_promotor[i]!=0){
 			printf("%d",terminaPromotor(fd_p2b));
