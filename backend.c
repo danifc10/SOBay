@@ -236,7 +236,7 @@ int main()
 		printf("deseja lançar um promotor ?(y/n)\n");
 		scanf("%c",&resposta);
 		union sigval valores;
-		valores.sival_int = 123;
+		valores.sival_int = -1;
 		if(resposta=='y'){
 			while(1){
 				strcpy(outputPromotores,recebePromotor(fd_p2b));
@@ -244,11 +244,6 @@ int main()
 				sigqueue(pid, SIGUSR1, valores);
 			}
 		}
-	for(int i=0;i<10;i++){
-		if(pid_promotor[i]!=0){
-			printf("%d",terminaPromotor(fd_p2b));
-		}
-	}
-
+	
 	return 0;
 }
