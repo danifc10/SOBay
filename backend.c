@@ -184,11 +184,6 @@ char * recebePromotor(int fd_p2b[2]) {
 	return strtok(msg,"\n");
 }
 
-int terminaPromotor(int fd_p2b[2]){
-	int estado;
-	wait(&estado);
-	return estado;
-}
 int main()
 {
 	char outputPromotores[100];
