@@ -238,10 +238,10 @@ int main()
 			while(1){
 				strcpy(outputPromotores,recebePromotor(fd_p2b));
 				printf("\nmsg:%s\n",outputPromotores);
-				i++;
 				if(i==2){
 				sigqueue(pid, SIGUSR1, valores);//fechar promotor
 				}
+				i++;
 			}
 		}
 		while(1){}
