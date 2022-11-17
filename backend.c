@@ -225,7 +225,7 @@ int main()
 		printf("\n\n Deseja testar que funcionalidade?\n");
 		fgets(comando, 200, stdin);
 		aux = leComandosAdmin(comando);
-		if(outputPromotores>0){
+		if(strlen(outputPromotores)>0){
 			strcpy(outputPromotores,recebePromotor(fd_p2b));
 			printf("\nmsg:%s\n",outputPromotores);
 		}
