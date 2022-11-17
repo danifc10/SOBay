@@ -308,6 +308,7 @@ int main()
 		int b = isUserValid(nome, pass); // 1 se existe 0 se nao existe ou pass errada
 		printf("%d\n", b);
 		leFicheiroItem("items.txt");
+		mostraItem();
 		printf("\n\n Deseja testar que funcionalidade?\n");
 		fgets(comando, 200, stdin);
 		aux1 = leComandosAdmin(comando);
