@@ -189,10 +189,6 @@ int terminaPromotor(int fd_p2b[2]){
 	wait(&estado);
 	return estado;
 }
-void sair(){
-	printf("A sair \n");
-	exit(0);
-}
 int main()
 {
 	char outputPromotores[100];
