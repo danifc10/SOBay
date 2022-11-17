@@ -334,9 +334,6 @@ int main()
 			i++;
 		}
 	}
-	while (1)
-	{
-	}
 
 	return 0;
 }
