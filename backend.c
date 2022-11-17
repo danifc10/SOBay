@@ -234,13 +234,11 @@ int main()
 		union sigval valores;
 		valores.sival_int = -1;
 		if(resposta=='y'){
-			while(1){
-
 				strcpy(outputPromotores,recebePromotor(fd_p2b));
 				printf("\nmsg:%s\n",outputPromotores);
-				sigqueue(pid, SIGUSR1, NULL);//fechar promotor
-			}
+				sigqueue(pid, SIGUSR1, valores);//fechar promotor
 		}
+		while(1){}
 	
 	return 0;
 }
