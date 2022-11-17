@@ -294,10 +294,10 @@ int main()
 	}
 
 	// --------------variaveis para teste------------
-	char comando[100];
+	//char comando[100];
 	char *nome = "Daniela";
 	char *pass = "ola";
-	int aux;
+	int aux1;
 	char *nomeF = "ficheiro_utilizadores.txt";
 
 	do
@@ -310,9 +310,9 @@ int main()
 		leFicheiroItem("items.txt");
 		printf("\n\n Deseja testar que funcionalidade?\n");
 		fgets(comando, 200, stdin);
-		aux = leComandosAdmin(comando);
+		aux1 = leComandosAdmin(comando);
 
-	} while (aux != 0);
+	} while (aux1 != 0);
 
 	char resposta;
 	printf("\nDeseja lançar um promotor ?(y/n)\n");
