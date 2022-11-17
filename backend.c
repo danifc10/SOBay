@@ -188,6 +188,10 @@ int terminaPromotor(int fd_p2b[2]){
 	wait(&estado);
 	return estado;
 }
+void sair(){
+	printf("A sair \n");
+	exit(0);
+}
 int main()
 {
 	char outputPromotores[100];
@@ -218,6 +222,10 @@ int main()
 		// leFicheiroItem("items.txt");
 		// mostraItem();
 	*/
+	struct sigaction sa;
+	sa.sa_handler = sair;
+	sigaction(SIGUSR1,&sa,NULL);
+	srand(time(NULL)); 
 	do
 	{
 		printf("\nbackend pid: %d pid: %d\n",getpid(),pid);
