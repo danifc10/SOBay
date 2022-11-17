@@ -223,10 +223,7 @@ int main()
 		// leFicheiroItem("items.txt");
 		// mostraItem();
 	*/
-	struct sigaction sa;
-	sa.sa_handler = sair;
-	sigaction(SIGUSR1,&sa,NULL);
-	srand(time(NULL)); 
+
 	do
 	{
 		printf("\nbackend pid: %d pid: %d\n",getpid(),pid);
@@ -238,11 +235,13 @@ int main()
 		char resposta;
 		printf("deseja lançar um promotor ?(y/n)\n");
 		scanf("%c",&resposta);
+		union sigval valores;
+		valores.sival_int = 123;
 		if(resposta=='y'){
 			while(1){
 				strcpy(outputPromotores,recebePromotor(fd_p2b));
 				printf("\nmsg:%s\n",outputPromotores);
-				
+				sigqueue(pid, SIGUSR1, valores);
 			}
 		}
 	for(int i=0;i<10;i++){
