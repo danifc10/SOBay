@@ -301,10 +301,9 @@ int main()
 	char *nomeF = "ficheiro_utilizadores.txt";
 	leFicheiroItem("items.txt");
 	mostraItem();
+	printf("\npid backend: %d pid promotor: %d\n", getpid(), pid);
 	do
 	{
-
-		printf("\nbackend pid: %d pid: %d\n", getpid(), pid);
 		loadUsersFile(nomeF);
 		int b = isUserValid(nome, pass); // 1 se existe 0 se nao existe ou pass errada
 		printf("%d\n", b);
