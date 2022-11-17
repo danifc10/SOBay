@@ -224,7 +224,7 @@ int main()
 		aux = leComandosAdmin(comando);
 	} while (aux != 0);
 		char resposta;
-		printf("deseja lançar um promotor ?(y/n)\n");
+		printf("\ndeseja lançar um promotor ?(y/n)\n");
 		scanf("%c",&resposta);
 		union sigval valores;
 		valores.sival_int = -1;
