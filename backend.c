@@ -232,9 +232,8 @@ int main()
 		if(resposta=='y'){
 			while(1){
 				strcpy(outputPromotores,recebePromotor(fd_p2b));
-				if(strlen(outputPromotores)>0){
-					printf("\nmsg:%s\n",outputPromotores);
-				}
+				printf("\nmsg:%s\n",outputPromotores);
+				
 			}
 		}
 	for(int i=0;i<10;i++){
