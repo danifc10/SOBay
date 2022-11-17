@@ -8,6 +8,7 @@
 #include <string.h>
 #include <sys/wait.h>
 #include <time.h>
+#include "users_lib.h"
 
 item *i;
 void mostraItem()
@@ -165,81 +166,176 @@ int leComandosAdmin(char *comando)
 	}
 }
 
-int executaPromotor(int fd_p2b[2]){
-	int f=fork();
-	if(f==-1){
+int executaPromotor(int fd_p2b[2])
+{
+	int f = fork();
+	if (f == -1)
+	{
 		printf("erro ao criar filho\n");
-	}else if(f==0){
+	}
+	else if (f == 0)
+	{
 		close(1);
 		dup(fd_p2b[1]);
 		close(fd_p2b[0]);
 		close(fd_p2b[1]);
-		execl("./promotor_oficial","promotor_oficial",NULL);
+		execl("./promotor_oficial", "promotor_oficial", NULL);
 	}
 	return f;
 }
-char * recebePromotor(int fd_p2b[2]) {
+char *recebePromotor(int fd_p2b[2])
+{
 	char msg[100];
-	read(fd_p2b[0],msg,100);
-	return strtok(msg,"\n");
+	read(fd_p2b[0], msg, 100);
+	return strtok(msg, "\n");
 }
 
+int loadUsersFile(char *pathname)
+{
+
+	FILE *f;
+	char Linha[100];
+
+	f = fopen(pathname, "rb");
+
+	if (f == NULL)
+	{
+		printf("\nErro ao abrir ficheiro");
+		return -1;
+	}
+	int i = 0;
+	while (fgets(Linha, 100, f))
+	{
+		char username[100], password[100];
+		int saldo;
+		sscanf(Linha, "%s %s %d", &username, &password, &saldo);
+		i++;
+	}
+	fclose(f);
+	return i;
+}
+
+int isUserValid(char *username, char *password)
+{
+
+	FILE *f;
+	char Linha[100];
+
+	f = fopen("ficheiro_utilizadores.txt", "rb");
+
+	if (f == NULL)
+	{
+		printf("\nErro ao abrir ficheiro");
+		return -1;
+	}
+	int i = 0;
+	int aux = 0;
+	while (fgets(Linha, 100, f))
+	{
+		char user[100], pass[100];
+		int saldo;
+
+		sscanf(Linha, "%s %s %d", &user, &pass, &saldo);
+
+		if (strcmp(username, user) == 0)
+		{
+			aux++;
+			if (strcmp(pass, password) == 0)
+			{
+				aux++;
+			}
+		}
+	}
+
+	fclose(f);
+
+	if (aux == 2)
+	{
+		return 1;
+	}
+	else
+	{
+		return 0;
+	}
+}
 int main()
 {
 	char outputPromotores[100];
-	//maximo de promotores
+	// maximo de promotores
 	int pid_promotor[10];
-	for(int i=0;i<10;i++){
-		pid_promotor[i]=0;
+
+	for (int i = 0; i < 10; i++)
+	{
+		pid_promotor[i] = 0;
 	}
+
 	char comando[20];
 	int aux = 0;
-	//criar 2 unnamed pipes
+	// criar 2 unnamed pipes
 	int fd_p2b[2];
-	//pipes
-	int Rpipe=pipe(fd_p2b);
-	if(Rpipe==-1){
+	// pipes
+	int Rpipe = pipe(fd_p2b);
+
+	if (Rpipe == -1)
+	{
 		printf("erro ao criar pipe\n");
 		exit(1);
 	}
-	int pid=executaPromotor(fd_p2b);
-	for(int i=0;i<10;i++){
-		if(pid_promotor[i]==0){
-			pid_promotor[i]=pid;
+
+	int pid = executaPromotor(fd_p2b);
+
+	for (int i = 0; i < 10; i++)
+	{
+		if (pid_promotor[i] == 0)
+		{
+			pid_promotor[i] = pid;
 			break;
 		}
 	}
-	/*
-		 //para testar a leitura e o save dos items ::
-		// leFicheiroItem("items.txt");
-		// mostraItem();
-	*/
+
+	// --------------variaveis para teste------------
+	char comando[100];
+	char *nome = "Daniela";
+	char *pass = "ola";
+	int aux;
+	char *nomeF = "ficheiro_utilizadores.txt";
 
 	do
 	{
-		printf("\nbackend pid: %d pid: %d\n",getpid(),pid);
+
+		printf("\nbackend pid: %d pid: %d\n", getpid(), pid);
+		loadUsersFile(nomeF);
+		int b = isUserValid(nome, pass); // 1 se existe 0 se nao existe ou pass errada
+		printf("%d", b);
 		leFicheiroItem("items.txt");
 		printf("\n\n Deseja testar que funcionalidade?\n");
 		fgets(comando, 200, stdin);
 		aux = leComandosAdmin(comando);
+
 	} while (aux != 0);
-		char resposta;
-		printf("deseja lançar um promotor ?(y/n)\n");
-		scanf("%c",&resposta);
-		union sigval valores;
-		valores.sival_int = -1;
-		if(resposta=='y'){
-			int i =0;//tem que aparecer 3 promo antes de  terminar o processo;
-			while(1){
-				strcpy(outputPromotores,recebePromotor(fd_p2b));
-				printf("\nmsg:%s\n",outputPromotores);
-				if(i==2){
-				sigqueue(pid, SIGUSR1, valores);//fechar promotor
-				}
-				i++;
+
+	char resposta;
+	printf("\nDeseja lançar um promotor ?(y/n)\n");
+	scanf("%c", &resposta);
+	union sigval valores;
+	valores.sival_int = -1;
+	if (resposta == 'y')
+	{
+		int i = 0; // tem que aparecer 3 promo antes de  terminar o processo;
+		while (1)
+		{
+			strcpy(outputPromotores, recebePromotor(fd_p2b));
+			printf("\nmsg:%s\n", outputPromotores);
+			if (i == 2)
+			{
+				sigqueue(pid, SIGUSR1, valores); // fechar promotor
 			}
+			i++;
 		}
-		while(1){}
-	
+	}
+	while (1)
+	{
+	}
+
 	return 0;
 }

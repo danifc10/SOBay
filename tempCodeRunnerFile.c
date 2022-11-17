@@ -1,1 +1,1 @@
-fgets(buffer,500,f);
+ i++;
