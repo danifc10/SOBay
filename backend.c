@@ -306,7 +306,7 @@ int main()
 		printf("\nbackend pid: %d pid: %d\n", getpid(), pid);
 		loadUsersFile(nomeF);
 		int b = isUserValid(nome, pass); // 1 se existe 0 se nao existe ou pass errada
-		printf("%d", b);
+		printf("%d\n", b);
 		leFicheiroItem("items.txt");
 		printf("\n\n Deseja testar que funcionalidade?\n");
 		fgets(comando, 200, stdin);
