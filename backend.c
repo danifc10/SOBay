@@ -234,7 +234,7 @@ int main()
 		union sigval valores;
 		valores.sival_int = -1;
 		if(resposta=='y'){
-			int i =0;
+			int i =0;//tem que aparecer 3 promo antes de  terminar o processo;
 			while(1){
 				strcpy(outputPromotores,recebePromotor(fd_p2b));
 				printf("\nmsg:%s\n",outputPromotores);
