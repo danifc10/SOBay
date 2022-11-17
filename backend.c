@@ -299,7 +299,8 @@ int main()
 	char *pass = "ola";
 	int aux1;
 	char *nomeF = "ficheiro_utilizadores.txt";
-
+	leFicheiroItem("items.txt");
+	mostraItem();
 	do
 	{
 
@@ -307,8 +308,6 @@ int main()
 		loadUsersFile(nomeF);
 		int b = isUserValid(nome, pass); // 1 se existe 0 se nao existe ou pass errada
 		printf("%d\n", b);
-		leFicheiroItem("items.txt");
-		mostraItem();
 		printf("\n\n Deseja testar que funcionalidade?\n");
 		fgets(comando, 200, stdin);
 		aux1 = leComandosAdmin(comando);
