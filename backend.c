@@ -215,6 +215,16 @@ int loadUsersFile(char *pathname)
 	return i;
 }
 
+int saveUsersFile(char * filename){
+	FILE *f;
+	f=fopen(filename,"rb");
+	if(f==NULL){
+		printf("erro ao abrir ficheiro %s\n",filename);
+		return -1;
+	}
+	fclose(f);
+	return 0;
+}
 int isUserValid(char *username, char *password)
 {
 
@@ -302,11 +312,11 @@ int main()
 	leFicheiroItem("items.txt");
 	mostraItem();
 	printf("\npid backend: %d pid promotor: %d\n", getpid(), pid);
+	printf("numero de utilizadores: %d\n",loadUsersFile(nomeF));
+	int b = isUserValid(nome, pass); // 1 se existe 0 se nao existe ou pass errada
+	printf("%d\n", b);
 	do
 	{
-		loadUsersFile(nomeF);
-		int b = isUserValid(nome, pass); // 1 se existe 0 se nao existe ou pass errada
-		printf("%d\n", b);
 		printf("\n\n Deseja testar que funcionalidade?\n");
 		fgets(comando, 200, stdin);
 		aux1 = leComandosAdmin(comando);
