@@ -5,7 +5,7 @@
 #ifndef USER_H
 #define USER_H
 #define USER_FILENAME "ficheiro_utilizadores.txt"
-typedef struct Utilizador user;
+typedef struct Utilizador user,*puser;
 
 struct Utilizador{
 	char nome[100];
@@ -13,6 +13,7 @@ struct Utilizador{
 	item *i;
 	int nItem;
 	int saldo;
+	puser prox;
 };
 
 

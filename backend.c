@@ -11,6 +11,7 @@
 #include "users_lib.h"
 
 item *i;
+puser *u;
 void mostraItem()
 {
 	while (i)
@@ -216,11 +217,30 @@ int loadUsersFile(char *pathname)
 }
 
 int saveUsersFile(char * filename){
+	char buffer[100];
+	char username[30],pass[30];
+	int s;
 	FILE *f;
 	f=fopen(filename,"rb");
 	if(f==NULL){
 		printf("erro ao abrir ficheiro %s\n",filename);
 		return -1;
+	}
+	for(int j=0;j<loadUsersFile(filename);++j){
+		puser aux = (puser) malloc(sizeof(user));
+		if(aux==NULL){
+			printf("Erro na alocacao de memoria\n");
+			fclose(f);
+			return -1;
+		}
+		 fgets(buffer,100,f);
+		sscanf(Linha, "%s %s %d", username, pass, &s);
+		strcpy(aux->nome,username);
+		strcpy(aux->pass,pass);
+		aux->saldo=s;
+		aux->prox = NULL;
+		*(u+i)=aux;
+
 	}
 	fclose(f);
 	return 0;
@@ -245,7 +265,7 @@ int isUserValid(char *username, char *password)
 		char user[100], pass[100];
 		int saldo;
 
-		sscanf(Linha, "%s %s %d", &user, &pass, &saldo);
+		sscanf(Linha, "%s %s %d", user, pass, &saldo);
 
 		if (strcmp(username, user) == 0)
 		{
@@ -268,6 +288,16 @@ int isUserValid(char *username, char *password)
 		return 0;
 	}
 }
+
+void mostrausers(){
+	while(u){
+		printf("nome: %s",u->nome);
+		printf("pass: %s",u->password);
+		printf("saldo: %d",u->saldo);
+		u=u->prox;
+	}
+}
+
 int main()
 {
 	char outputPromotores[100];
@@ -315,6 +345,8 @@ int main()
 	printf("numero de utilizadores: %d\n",loadUsersFile(nomeF));
 	int b = isUserValid(nome, pass); // 1 se existe 0 se nao existe ou pass errada
 	printf("%d\n", b);
+	saveUsersFile(nomeF);
+	mostrausers();
 	do
 	{
 		printf("\n\n Deseja testar que funcionalidade?\n");
