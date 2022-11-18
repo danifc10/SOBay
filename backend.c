@@ -221,7 +221,7 @@ int saveUsersFile(char * filename){
     user l;
     f=fopen(filename,"rt");
     if(f==NULL){
-        return NULL;
+        return -1;
     }
     while(feof(f)==0){
         fread(&l,sizeof(user),1,f);
