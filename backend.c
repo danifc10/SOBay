@@ -11,7 +11,7 @@
 #include "users_lib.h"
 
 item *i;
-puser ut;
+puser utilizadores;
 void mostraItem()
 {
 	while (i)
@@ -65,7 +65,6 @@ void adicionaItem(item **i, char *n, int id, char *ctg, int vb, int cj, int tmp)
 void leFicheiroItem(char *nomeFich)
 {
 	FILE *f;
-	user *u;
 	char Linha[100];
 
 	f = fopen("items.txt", "rb");
@@ -204,16 +203,16 @@ int loadUsersFile(char *pathname)
 		printf("\nErro ao abrir ficheiro");
 		return -1;
 	}
-	int i = 0;
+	int j = 0;
 	while (fgets(Linha, 100, f))
 	{
 		char username[100], password[100];
 		int saldo;
 		sscanf(Linha, "%s %s %d", username, password, &saldo);
-		i++;
+		j++;
 	}
 	fclose(f);
-	return i;
+	return j;
 }
 
 int saveUsersFile(char * filename){
@@ -225,21 +224,14 @@ int saveUsersFile(char * filename){
 		return -1;
 	}
 	for(int j=0;j<loadUsersFile(filename);++j){
-		char username[100],pass[100];
-		int s;
 		user *aux;
+		fgets(buffer,100,f);
 		aux=malloc(sizeof(user));
 		if(aux){
-			fgets(buffer,100,f);
-			sscanf(buffer, "%s %s %d", username, pass, &s);
-			strcpy(aux->nome,username);
-			strcpy(aux->password,pass);
-			aux->saldo=s;
-			aux->prox = NULL;
-			*(ut+j)=aux;
-		}else{
-			return -1;
+		sscanf(buffer,"%s %s %d",aux->nome,aux->password,&aux->saldo);
+		*(ut+j)=aux;
 		}
+
 	}
 	fclose(f);
 	return 0;
