@@ -229,7 +229,7 @@ int saveUsersFile(char * filename){
 		aux=malloc(sizeof(user));
 		if(aux){
 		sscanf(buffer,"%s %s %d",aux->nome,aux->password,&aux->saldo);
-		*(ut+j)=aux;
+		*(utilizadores+j)=aux;
 		}
 
 	}
