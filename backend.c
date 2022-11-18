@@ -230,7 +230,7 @@ int saveUsersFile(char * filename){
 		return -1;
 	}
 	for(int j = 0;j<tamanho;j++){
-		fgets(buffer,100,filename);
+		fgets(buffer,100,f);
 		sscanf(buffer,"%s %s %d",utilizadores[j].nome,utilizadores[j].password,&utilizadores.saldo);
 	}
 	fclose(f);
