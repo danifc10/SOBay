@@ -291,13 +291,13 @@ int isUserValid(char *username, char *password)
 	}
 }
 int getUserBalance(char * username){
-	while(utilizadores){
+	while(utilizadores ||strcmp(utilizadores->nome,username)!=0){
 		printf("nome: %s\n",utilizadores->nome);
 		utilizadores=utilizadores->prox;
 	}
-	/*if(utilizadores!=NULL){
+	if(utilizadores!=NULL){
 		return utilizadores->saldo;
-	}*/
+	}
 	return -1;
 }
 void mostrausers(){
