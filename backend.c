@@ -225,7 +225,7 @@ int saveUsersFile(char * filename){
         return -1;
     }
     while(feof(f)==0){
-        fgets(buffer,"%s %s %d\n",l.nome,l.password,&l.saldo)
+        fgets(buffer,"%s %s %d\n",l.nome,l.password,&l.saldo);
         l.prox=NULL;
         novo=malloc(sizeof(user));
         if(novo==NULL){
