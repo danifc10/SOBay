@@ -279,11 +279,11 @@ int isUserValid(char *username, char *password)
 	}
 }
 int getUserBalance(char * username){
-	while(ut!=NULL || strcmp(ut->nome,username)){
-		ut=ut->prox;
+	while(utilizadores!=NULL || strcmp(utilizadores->nome,username)){
+		utilizadores=utilizadores->prox;
 	}
-	if(ut!=NULL){
-		return ut->saldo;
+	if(utilizadores!=NULL){
+		return utilizadores->saldo;
 	}
 	return -1;
 }
