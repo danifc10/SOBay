@@ -288,11 +288,11 @@ int getUserBalance(char * username){
 	return -1;
 }
 void mostrausers(){
-	while(ut){
-		printf("\n\nnome: %s\n",ut->nome);
-		printf("pass: %s\n",ut->password);
-		printf("saldo: %d\n",ut->saldo);
-		ut=ut->prox;
+	while(utilizadores){
+		printf("\n\nnome: %s\n",utilizadores->nome);
+		printf("pass: %s\n",utilizadores->password);
+		printf("saldo: %d\n",utilizadores->saldo);
+		utilizadores=utilizadores->prox;
 	}
 }
 
