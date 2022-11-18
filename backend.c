@@ -229,18 +229,17 @@ int saveUsersFile(char * filename){
 		int s;
 		puser aux = NULL;
 		aux=malloc(sizeof(user));
-		if(aux==NULL){
-			printf("Erro na alocacao de memoria\n");
-			fclose(f);
+		if(aux){
+			fgets(buffer,100,f);
+			sscanf(buffer, "%s %s %d", username, pass, &s);
+			strcpy(aux->nome,username);
+			strcpy(aux->password,pass);
+			aux->saldo=s;
+			aux->prox = NULL;
+			*(ut+j)=*aux;
+		}else{
 			return -1;
 		}
-		fgets(buffer,100,f);
-		sscanf(buffer, "%s %s %d", username, pass, &s);
-		strcpy(aux->nome,username);
-		strcpy(aux->password,pass);
-		aux->saldo=s;
-		aux->prox = NULL;
-		*(ut+j)=*aux;
 	}
 	fclose(f);
 	return 0;
