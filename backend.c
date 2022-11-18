@@ -292,7 +292,7 @@ int getUserBalance(char * username){
 }
 int updateUserBalance(char * username, int value){
 	int j,tamanho = loadUsersFile(USER_FILENAME);
-	for(j = 0;strcmp(utilizadores[j].nome,username)!=0||j<tamanho;j++){}
+	for(j = 0;strcmp(utilizadores[j].nome,username)!=0;j++){}
 	if(strcmp(utilizadores[j].nome,username)==0){
 		utilizadores[j].saldo=value;
 		return 0;
