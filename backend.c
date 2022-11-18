@@ -11,7 +11,7 @@
 #include "users_lib.h"
 
 item *i;
-puser *u;
+user *u;
 void mostraItem()
 {
 	while (i)
