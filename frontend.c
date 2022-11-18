@@ -6,78 +6,6 @@
 #include "user.h"
 #include "item.h"
 
-user *recuperaUtilizadores(char *filename, int *tamanho)
-{
-	char buffer[500];
-	FILE *f;
-	f = fopen(filename, "rt");
-	if (f == NULL)
-	{
-		printf("Erro a abrir %s", filename);
-		return NULL;
-	}
-	else
-	{
-		user *a = NULL;
-		printf("tamanho:%d\n",tamanho);
-		a=malloc(tamanho * sizeof(user));
-		if (a == NULL)
-		{
-			return NULL;
-		}
-		if(tamanho>0){
-		int i = 0;
-		while (i<tamanho)
-		{
-			fgets(buffer, 500, f);
-			sscanf(buffer, "%s %s %d", a[i].nome, a[i].password, &a[i].saldo);
-			i++;
-		}
-		}
-		fclose(f);
-		return a;
-	}
-}
-
-void escreveFicheiro(char *filename, user *a, int tamanho)
-{
-	FILE *f;
-	f = fopen(filename, "wt");
-	if (f == NULL)
-	{
-		return;
-	}
-	int i = 0;
-	while (i < tamanho)
-	{
-		fprintf(f, "%s %s %d\n", a[i].nome, a[i].password, a[i].saldo);
-		printf("%s\n",a[i].nome);
-		printf("%s\n",a[i].password);
-		printf("%d\n",a[i].saldo);
-		i++;
-	}
-	fclose(f);
-}
-
-user *adicionaUser(user *a, int *tamanho, char n[], char pass[])
-{
-
-	user *aux = NULL;
-	aux = malloc(sizeof(user));
-	if (aux == NULL)
-	{
-		return NULL;
-	}
-	else
-	{
-		strcpy(aux->nome, n);
-		strcpy(aux->password, pass);
-		aux->saldo = 0;
-		a[*tamanho-1] = *aux;
-	}
-	return a;
-}
-
 int leComandosCliente(char *comando)
 {
 	char aux[100];
@@ -179,32 +107,11 @@ int leComandosCliente(char *comando)
 		break;
 	}
 }
-int file_length(char *filename){
-	char buffer[500];
-	FILE *f;
-	f = fopen(filename,"rt");
-	if(f==NULL){
-		printf("ERRO A ABRIR FICHEIRO\n");
-		exit(1);
-	}
-	int i=0;
-	while(feof(f)==0){
-		fgets(buffer,500,f);
-		i++;
-	}
-	fclose(f);
-	return i;
-}
+
 int main(int argc , char *argv[])
 {
 	if (argc == 3)
 	{
-		int tamanho = file_length("ficheiro_utilizadores.txt");
-		user *a = NULL;
-		a = recuperaUtilizadores("ficheiro_utilizadores.txt", tamanho);
-		
-		a = adicionaUser(a, &tamanho, argv[1], argv[2]);
-		escreveFicheiro("ficheiro_utilizadores.txt", a, tamanho);
 		char comando[20];
 		fgets(comando, 200, stdin);
 		leComandosCliente(comando);
