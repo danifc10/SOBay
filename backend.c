@@ -362,7 +362,7 @@ int main()
 	printf("%d\n", b);
 	saveUsersFile(USER_FILENAME);
 	mostrausers();
-	printf("saldo do utilizador/a : %d",getUserBalance(nome));
+	printf("saldo do utilizador/a : %d\n",getUserBalance(nome));
 	updateUserBalance(nome,10);
 	mostrausers();
 	do
