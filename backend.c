@@ -229,9 +229,9 @@ int saveUsersFile(char * filename){
 		aux=malloc(sizeof(user));
 		if(aux){
 		sscanf(buffer,"%s %s %d",aux->nome,aux->password,&aux->saldo);
+		aux->prox=NULL;
 		*(utilizadores+j)=aux;
 		}
-
 	}
 	fclose(f);
 	return 0;
