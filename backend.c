@@ -216,25 +216,34 @@ int loadUsersFile(char *pathname)
 }
 
 int saveUsersFile(char * filename){
-	char buffer[100];
-	FILE *f;
-	f=fopen(filename,"rb");
-	if(f==NULL){
-		printf("erro ao abrir ficheiro %s\n",filename);
-		return -1;
-	}
-	for(int j=0;j<loadUsersFile(filename);++j){
-		user *aux;
-		fgets(buffer,100,f);
-		aux=malloc(sizeof(user));
-		if(aux){
-		sscanf(buffer,"%s %s %d",aux->nome,aux->password,&aux->saldo);
-		aux->prox=NULL;
-		*(utilizadores+j)=aux;
-		}
-	}
-	fclose(f);
-	return 0;
+	puser novo,aux;
+    FILE *f;
+    user l;
+    f=fopen(filename,"rt");
+    if(f==NULL){
+        return NULL;
+    }
+    while(feof(f)==0){
+        fread(&l,sizeof(user),1,f);
+        l.prox=NULL;
+        novo=malloc(sizeof(user));
+        if(novo==NULL){
+            fclose(f);
+            return NULL;
+        }
+        *novo=l;
+        if(utilizadores==NULL){
+            utilizadores=novo;
+        }
+        else{
+            aux=utilizadores;
+            while(aux->prox!=NULL){
+                aux=aux->prox;
+            }
+            aux->prox=novo;
+        }
+    }
+  fclose(f);
 }
 int isUserValid(char *username, char *password)
 {
