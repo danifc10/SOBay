@@ -231,7 +231,7 @@ int saveUsersFile(char * filename){
 	}
 	for(int j = 0;j<tamanho;j++){
 		fgets(buffer,100,f);
-		sscanf(buffer,"%s %s %d",utilizadores[j].nome,utilizadores[j].password,&utilizadores.saldo);
+		sscanf(buffer,"%s %s %d",utilizadores[j].nome,utilizadores[j].password,&utilizadores[j].saldo);
 	}
 	fclose(f);
 	return 0;
