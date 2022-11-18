@@ -295,7 +295,7 @@ int getUserBalance(char * username){
 	if(u!=NULL){
 		return u->saldo;
 	}
-	return -1
+	return -1;
 }
 void mostrausers(){
 	while(u){
