@@ -216,6 +216,7 @@ int loadUsersFile(char *pathname)
 }
 
 int saveUsersFile(char * filename){
+	char buffer[100];
 	puser novo,aux;
     FILE *f;
     user l;
@@ -224,7 +225,7 @@ int saveUsersFile(char * filename){
         return -1;
     }
     while(feof(f)==0){
-        fread(&l,sizeof(user),1,f);
+        fgets(buffer,"%s %s %d\n",l.nome,l.password,&l.saldo)
         l.prox=NULL;
         novo=malloc(sizeof(user));
         if(novo==NULL){
