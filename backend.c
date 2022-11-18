@@ -209,7 +209,7 @@ int loadUsersFile(char *pathname)
 	{
 		char username[100], password[100];
 		int saldo;
-		sscanf(Linha, "%s %s %d", &username, &password, &saldo);
+		sscanf(Linha, "%s %s %d", username, password, &saldo);
 		i++;
 	}
 	fclose(f);
@@ -218,8 +218,6 @@ int loadUsersFile(char *pathname)
 
 int saveUsersFile(char * filename){
 	char buffer[100];
-	char username[30],pass[30];
-	int s;
 	FILE *f;
 	f=fopen(filename,"rb");
 	if(f==NULL){
@@ -227,17 +225,19 @@ int saveUsersFile(char * filename){
 		return -1;
 	}
 	for(int j=0;j<loadUsersFile(filename);++j){
+		char username[30],pass[30];
+		int s;
 		puser aux = (puser) malloc(sizeof(user));
 		if(aux==NULL){
 			printf("Erro na alocacao de memoria\n");
 			fclose(f);
 			return -1;
 		}
-		 fgets(buffer,100,f);
+		fgets(buffer,100,f);
 		sscanf(buffer, "%s %s %d", username, pass, &s);
 		strcpy(aux->nome,username);
 		strcpy(aux->pass,pass);
-		aux.saldo=s;
+		aux->saldo=s;
 		aux->prox = NULL;
 		*(u+j)=aux;
 
@@ -291,9 +291,9 @@ int isUserValid(char *username, char *password)
 
 void mostrausers(){
 	while(u){
-		printf("\n\nnome: %s\n",u.nome);
-		printf("pass: %s\n",u.password);
-		printf("saldo: %d\n",u.saldo);
+		printf("\n\nnome: %s\n",u->nome);
+		printf("pass: %s\n",u->password);
+		printf("saldo: %d\n",u->saldo);
 		u=u->prox;
 	}
 }
