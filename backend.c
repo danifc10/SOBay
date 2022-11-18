@@ -350,7 +350,7 @@ int main()
 	int b = isUserValid(nome, pass); // 1 se existe 0 se nao existe ou pass errada
 	printf("%d\n", b);
 	saveUsersFile(USER_FILENAME);
-	mostrausers();
+	//mostrausers();
 	printf("saldo do utilizador/a : %d",getUserBalance(nome));
 	mostrausers();
 	do
