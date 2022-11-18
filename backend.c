@@ -240,14 +240,13 @@ int saveUsersFile(char * filename){
 		strcpy(aux->password,pass);
 		aux->saldo=s;
 		aux->prox = NULL;
-		*(u+j)=aux;
+		*(ut+j)=aux;
 	}
 	fclose(f);
 	return 0;
 }
 int isUserValid(char *username, char *password)
 {
-
 	FILE *f;
 	char Linha[100];
 
@@ -289,20 +288,20 @@ int isUserValid(char *username, char *password)
 	}
 }
 int getUserBalance(char * username){
-	while(u!=NULL || strcmp(u->nome,username)){
-		u=u->prox;
+	while(ut!=NULL || strcmp(ut->nome,username)){
+		ut=ut->prox;
 	}
-	if(u!=NULL){
-		return u->saldo;
+	if(ut!=NULL){
+		return ut->saldo;
 	}
 	return -1;
 }
 void mostrausers(){
-	while(u){
-		printf("\n\nnome: %s\n",u->nome);
-		printf("pass: %s\n",u->password);
-		printf("saldo: %d\n",u->saldo);
-		u=u->prox;
+	while(ut){
+		printf("\n\nnome: %s\n",ut->nome);
+		printf("pass: %s\n",ut->password);
+		printf("saldo: %d\n",ut->saldo);
+		ut=ut->prox;
 	}
 }
 
