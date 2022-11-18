@@ -225,7 +225,7 @@ int saveUsersFile(char * filename){
 		return -1;
 	}
 	for(int j=0;j<loadUsersFile(filename);++j){
-		char username[30],pass[30];
+		char username[100],pass[100];
 		int s;
 		user* aux = malloc(sizeof(user));
 		if(aux==NULL){
