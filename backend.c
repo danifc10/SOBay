@@ -334,7 +334,6 @@ int main()
 	int b = isUserValid(nome, pass); // 1 se existe 0 se nao existe ou pass errada
 	printf("%d\n", b);
 	saveUsersFile(nomeF);
-	printf("tamanho utilizadores %d\n",sizeof(utilizadores));
 	//mostrausers();
 	//printf("saldo do utilizador/a %s : %d",nome,getUserBalance(nome));
 	do
