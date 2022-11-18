@@ -216,8 +216,7 @@ int loadUsersFile(char *pathname)
 }
 
 int saveUsersFile(char * filename){
-	int tamanho=loadUsersFile(filename);
-	utilizadores=malloc(tamanho * sizeof(user));
+	utilizadores=malloc(loadUsersFile(filename) * sizeof(user));
 	if(!utilizadores){
 		printf("erro ao alocar memoria\n");
 		return -1;
@@ -279,11 +278,10 @@ int isUserValid(char *username, char *password)
 	}
 }
 int getUserBalance(char * username){
-
-	return -1;
+	for(int j = 0;strcmp(utilizadores[j].nome,username)!=0;j++){}
+	return utilizadores[j].saldo;
 }
 void mostrausers(){
-	
 }
 
 int main()
@@ -327,6 +325,8 @@ int main()
 	char *pass = "ola";
 	int aux1;
 	char *nomeF = "ficheiro_utilizadores.txt";
+
+
 	leFicheiroItem("items.txt");
 	mostraItem();
 	printf("\npid backend: %d pid promotor: %d\n", getpid(), pid);
@@ -335,7 +335,7 @@ int main()
 	printf("%d\n", b);
 	saveUsersFile(nomeF);
 	//mostrausers();
-	//printf("saldo do utilizador/a %s : %d",nome,getUserBalance(nome));
+	printf("saldo do utilizador/a %s : %d",nome,getUserBalance(nome));
 	do
 	{
 		printf("\n\n Deseja testar que funcionalidade?\n");
