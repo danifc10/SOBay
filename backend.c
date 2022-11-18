@@ -239,7 +239,7 @@ int saveUsersFile(char * filename){
 		strcpy(aux->pass,pass);
 		aux->saldo=s;
 		aux->prox = NULL;
-		*(u+i)=aux;
+		*(u+j)=aux;
 
 	}
 	fclose(f);
