@@ -288,7 +288,9 @@ int isUserValid(char *username, char *password)
 		return 0;
 	}
 }
-
+int getUserBalance(char * username){
+	
+}
 void mostrausers(){
 	while(u){
 		printf("\n\nnome: %s\n",u->nome);
