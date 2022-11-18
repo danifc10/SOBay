@@ -289,7 +289,13 @@ int isUserValid(char *username, char *password)
 	}
 }
 int getUserBalance(char * username){
-	
+	while(u!=NULL || strcmp(u->nome,username)){
+		u=u->prox;
+	}
+	if(u!=NULL){
+		return u->saldo;
+	}
+	return -1
 }
 void mostrausers(){
 	while(u){
