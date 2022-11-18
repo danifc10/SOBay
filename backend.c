@@ -201,6 +201,7 @@ int loadUsersFile(char *pathname)
 	if (f == NULL)
 	{
 		printf("\nErro ao abrir ficheiro");
+		fclose(f);
 		return -1;
 	}
 	int j = 0;
@@ -227,6 +228,7 @@ int saveUsersFile(char * filename){
 	f=fopen(filename,"rt");
 	if(f==NULL){
 		printf("erro ao abrir ficheiro %s\n",filename);
+		fclose(f);
 		return -1;
 	}
 	for(int j = 0;j<tamanho;j++){
@@ -352,7 +354,7 @@ int main()
 	saveUsersFile(USER_FILENAME);
 	//mostrausers();
 	printf("saldo do utilizador/a : %d",getUserBalance(nome));
-	mostrausers();
+	
 	do
 	{
 		printf("\n\n Deseja testar que funcionalidade?\n");
