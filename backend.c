@@ -227,7 +227,7 @@ int saveUsersFile(char * filename){
 	for(int j=0;j<loadUsersFile(filename);++j){
 		char username[100],pass[100];
 		int s;
-		puser aux = NULL;
+		user *aux;
 		aux=malloc(sizeof(user));
 		if(aux){
 			fgets(buffer,100,f);
