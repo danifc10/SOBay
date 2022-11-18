@@ -241,7 +241,7 @@ int isUserValid(char *username, char *password)
 	FILE *f;
 	char Linha[100];
 
-	f = fopen("ficheiro_utilizadores.txt", "rb");
+	f = fopen(USER_FILENAME, "rb");
 
 	if (f == NULL)
 	{
@@ -279,13 +279,27 @@ int isUserValid(char *username, char *password)
 	}
 }
 int getUserBalance(char * username){
-	int j;
-	for(j = 0;strcmp(utilizadores[j].nome,username)!=0;j++){
-		printf("%d\n",j);
+	int j,tamanho = loadUsersFile(USER_FILENAME);
+	for(j = 0;strcmp(utilizadores[j].nome,username)!=0||j<tamanho;j++){}
+	if(strcmp(utilizadores[j].nome,username)==0){
+		return utilizadores[j].saldo;
 	}
-	return utilizadores[j].saldo;
+	return -1;
+}
+int updateUserBalance(char * username, int value){
+	int j,tamanho = loadUsersFile(USER_FILENAME);
+	for(j = 0;strcmp(utilizadores[j].nome,username)!=0||j<tamanho;j++){}
+	if(strcmp(utilizadores[j].nome,username)==0){
+		utilizadores[j].saldo=value;
+		return 0;
+	}
+	return -1;
 }
 void mostrausers(){
+	int j,tamanho = loadUsersFile(USER_FILENAME);
+	for(j = 0;j<tamanho;j++){
+		printf("nome: %s pass: %s saldo: %d \n",utilizadores[j].nome,utilizadores[j].password,utilizadores[j].saldo);
+	}
 }
 
 int main()
@@ -328,18 +342,18 @@ int main()
 	char *nome = "daniela";
 	char *pass = "ola";
 	int aux1;
-	char *nomeF = "ficheiro_utilizadores.txt";
 
 
 	leFicheiroItem("items.txt");
 	mostraItem();
 	printf("\npid backend: %d pid promotor: %d\n", getpid(), pid);
-	printf("numero de utilizadores: %d\n",loadUsersFile(nomeF));
+	printf("numero de utilizadores: %d\n",loadUsersFile(USER_FILENAME));
 	int b = isUserValid(nome, pass); // 1 se existe 0 se nao existe ou pass errada
 	printf("%d\n", b);
-	saveUsersFile(nomeF);
-	//mostrausers();
+	saveUsersFile(USER_FILENAME);
+	mostrausers();
 	printf("saldo do utilizador/a : %d",getUserBalance(nome));
+	mostrausers();
 	do
 	{
 		printf("\n\n Deseja testar que funcionalidade?\n");
