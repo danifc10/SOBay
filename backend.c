@@ -11,7 +11,7 @@
 #include "users_lib.h"
 
 item *i;
-puser utilizadores;
+user *utilizadores;
 void mostraItem()
 {
 	while (i)
@@ -216,37 +216,6 @@ int loadUsersFile(char *pathname)
 }
 
 int saveUsersFile(char * filename){
-	char buffer[100];
-	puser novo,aux;
-    FILE *f;
-    user l;
-    f=fopen(filename,"rt");
-    if(f==NULL){
-        return -1;
-    }
-    while(feof(f)==0){
-        fgets(buffer,100,f);
-		sscanf(buffer,"%s %s %d\n",l.nome,l.password,&l.saldo);
-        l.prox=NULL;
-        novo=malloc(sizeof(user));
-        if(novo==NULL){
-            fclose(f);
-            return -1;
-        }
-        *novo=l;
-        if(utilizadores==NULL){
-            utilizadores=novo;
-        }
-        else{
-            aux=utilizadores;
-            while(aux->prox!=NULL){
-                aux=aux->prox;
-            }
-            aux->prox=novo;
-        }
-    }
-  fclose(f);
-  return 0;
 }
 int isUserValid(char *username, char *password)
 {
@@ -296,7 +265,7 @@ int getUserBalance(char * username){
 		utilizadores=utilizadores->prox;
 	}
 	if(utilizadores!=NULL){
-		printf("saldo de %s :%d",utilizadores->nome, utilizadores->saldo);
+		printf("saldo de %s :%d",utilizadores->, utilizadores->saldo);
 	}
 	return -1;
 }
