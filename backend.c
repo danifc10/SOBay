@@ -280,8 +280,9 @@ int isUserValid(char *username, char *password)
 }
 int getUserBalance(char * username){
 	int j;
-	for(j = 0;strcmp(utilizadores[j].nome,username)!=0;j++){}
-	return utilizadores[j].saldo;
+	for(j = 0;strcmp(utilizadores[j].nome,username)!=0;j++){
+		printf("%d\n",j);
+	}
 }
 void mostrausers(){
 }
