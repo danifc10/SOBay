@@ -291,7 +291,7 @@ int isUserValid(char *username, char *password)
 	}
 }
 int getUserBalance(char * username){
-	while(utilizadores!=NULL || strcmp(utilizadores->nome,username)){
+	while(utilizadores!=NULL){
 		utilizadores=utilizadores->prox;
 		printf("%s\n",utilizadores->nome);
 	}
