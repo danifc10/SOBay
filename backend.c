@@ -241,7 +241,6 @@ int saveUsersFile(char * filename){
 		aux->saldo=s;
 		aux->prox = NULL;
 		*(u+j)=aux;
-
 	}
 	fclose(f);
 	return 0;
