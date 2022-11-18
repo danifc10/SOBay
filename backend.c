@@ -227,7 +227,8 @@ int saveUsersFile(char * filename){
 	for(int j=0;j<loadUsersFile(filename);++j){
 		char username[100],pass[100];
 		int s;
-		user* aux = malloc(sizeof(user));
+		user* aux = NULL;
+		aux=malloc(sizeof(user));
 		if(aux==NULL){
 			printf("Erro na alocacao de memoria\n");
 			fclose(f);
