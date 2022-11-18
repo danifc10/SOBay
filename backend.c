@@ -296,7 +296,7 @@ int getUserBalance(char * username){
 		utilizadores=utilizadores->prox;
 	}
 	if(utilizadores!=NULL){
-		return utilizadores->saldo;
+		printf("saldo de %s :%d",utilizadores->nome, utilizadores->saldo);
 	}
 	return -1;
 }
