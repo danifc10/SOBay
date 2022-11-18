@@ -237,7 +237,7 @@ int saveUsersFile(char * filename){
 		sscanf(buffer, "%s %s %d", username, pass, &s);
 		strcpy(aux->nome,username);
 		strcpy(aux->pass,pass);
-		aux->saldo=s;
+		aux.saldo=s;
 		aux->prox = NULL;
 		*(u+j)=aux;
 
@@ -291,9 +291,9 @@ int isUserValid(char *username, char *password)
 
 void mostrausers(){
 	while(u){
-		printf("\n\nnome: %s\n",u->nome);
-		printf("pass: %s\n",u->password);
-		printf("saldo: %d\n",u->saldo);
+		printf("\n\nnome: %s\n",u.nome);
+		printf("pass: %s\n",u.password);
+		printf("saldo: %d\n",u.saldo);
 		u=u->prox;
 	}
 }
