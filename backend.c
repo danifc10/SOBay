@@ -282,7 +282,9 @@ int isUserValid(char *username, char *password)
 }
 int getUserBalance(char * username){
 	int j,tamanho = loadUsersFile(USER_FILENAME);
-	for(j = 0;strcmp(utilizadores[j].nome,username)!=0||j<tamanho;j++){}
+	for(j = 0;strcmp(utilizadores[j].nome,username)!=0||j<tamanho;j++){
+		printf("%d\n",j);
+	}
 	if(strcmp(utilizadores[j].nome,username)==0){
 		return utilizadores[j].saldo;
 	}
