@@ -297,9 +297,9 @@ int updateUserBalance(char * username, int value){
 }
 void mostrausers(){
 	int j,tamanho = loadUsersFile(USER_FILENAME);
-	for(j = 0;j<tamanho;j++){
+	/*for(j = 0;j<tamanho;j++){
 		printf("nome: %s pass: %s saldo: %d \n",utilizadores[j].nome,utilizadores[j].password,utilizadores[j].saldo);
-	}
+	}*/
 }
 
 int main()
