@@ -216,7 +216,8 @@ int loadUsersFile(char *pathname)
 }
 
 int saveUsersFile(char * filename){
-	utilizadores=malloc(loadUsersFile(filename) * sizeof(user));
+	int tamanho =loadUsersFile(filename);
+	utilizadores=malloc(tamanho * sizeof(user));
 	if(!utilizadores){
 		printf("erro ao alocar memoria\n");
 		return -1;
@@ -278,7 +279,8 @@ int isUserValid(char *username, char *password)
 	}
 }
 int getUserBalance(char * username){
-	for(int j = 0;strcmp(utilizadores[j].nome,username)!=0;j++){}
+	int j;
+	for(j = 0;strcmp(utilizadores[j].nome,username)!=0;j++){}
 	return utilizadores[j].saldo;
 }
 void mostrausers(){
