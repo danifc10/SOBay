@@ -229,7 +229,7 @@ int saveUsersFile(char * filename){
         novo=malloc(sizeof(user));
         if(novo==NULL){
             fclose(f);
-            return NULL;
+            return -1;
         }
         *novo=l;
         if(utilizadores==NULL){
@@ -244,6 +244,7 @@ int saveUsersFile(char * filename){
         }
     }
   fclose(f);
+  return 0;
 }
 int isUserValid(char *username, char *password)
 {
