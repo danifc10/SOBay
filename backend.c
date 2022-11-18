@@ -234,7 +234,7 @@ int saveUsersFile(char * filename){
 			return -1;
 		}
 		 fgets(buffer,100,f);
-		sscanf(Linha, "%s %s %d", username, pass, &s);
+		sscanf(buffer, "%s %s %d", username, pass, &s);
 		strcpy(aux->nome,username);
 		strcpy(aux->pass,pass);
 		aux->saldo=s;
