@@ -216,6 +216,25 @@ int loadUsersFile(char *pathname)
 }
 
 int saveUsersFile(char * filename){
+	int tamanho=loadUsersFile(filename);
+	utilizadores=malloc(tamanho * sizeof(user));
+	if(!utilizadores){
+		printf("erro ao alocar memoria\n");
+		return -1;
+	}
+	char buffer[100];
+	FILE *f;
+	f=fopen(filename,"rt");
+	if(f==NULL){
+		printf("erro ao abrir ficheiro %s\n",filename);
+		return -1;
+	}
+	for(int j = 0;j<tamanho;j++){
+		fgets(buffer,100,filename);
+		sscanf(buffer,"%s %s %d",utilizadores[j].nome,utilizadores[j].password,&utilizadores.saldo);
+	}
+	fclose(f);
+	return 0;
 }
 int isUserValid(char *username, char *password)
 {
@@ -260,22 +279,11 @@ int isUserValid(char *username, char *password)
 	}
 }
 int getUserBalance(char * username){
-	while(utilizadores ||strcmp(utilizadores->nome,username)!=0){
-		printf("nome: %s\n",utilizadores->nome);
-		utilizadores=utilizadores->prox;
-	}
-	if(utilizadores!=NULL){
-		printf("saldo de %s :%d",utilizadores->, utilizadores->saldo);
-	}
+
 	return -1;
 }
 void mostrausers(){
-	while(utilizadores){
-		printf("\n\nnome: %s\n",utilizadores->nome);
-		printf("pass: %s\n",utilizadores->password);
-		printf("saldo: %d\n",utilizadores->saldo);
-		utilizadores=utilizadores->prox;
-	}
+	
 }
 
 int main()
@@ -326,8 +334,9 @@ int main()
 	int b = isUserValid(nome, pass); // 1 se existe 0 se nao existe ou pass errada
 	printf("%d\n", b);
 	saveUsersFile(nomeF);
+	printf("tamanho utilizadores %d\n",sizeof(utilizadores));
 	//mostrausers();
-	printf("saldo do utilizador/a %s : %d",nome,getUserBalance(nome));
+	//printf("saldo do utilizador/a %s : %d",nome,getUserBalance(nome));
 	do
 	{
 		printf("\n\n Deseja testar que funcionalidade?\n");
