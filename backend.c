@@ -291,9 +291,9 @@ int isUserValid(char *username, char *password)
 
 void mostrausers(){
 	while(u){
-		printf("nome: %s",u->nome);
-		printf("pass: %s",u->password);
-		printf("saldo: %d",u->saldo);
+		printf("\n\nnome: %s\n",u->nome);
+		printf("pass: %s\n",u->password);
+		printf("saldo: %d\n",u->saldo);
 		u=u->prox;
 	}
 }
