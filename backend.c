@@ -337,7 +337,7 @@ int main()
 	printf("%d\n", b);
 	saveUsersFile(nomeF);
 	//mostrausers();
-	printf("saldo do utilizador/a %s : %d",nome,getUserBalance(nome));
+	printf("saldo do utilizador/a : %d",getUserBalance(nome));
 	do
 	{
 		printf("\n\n Deseja testar que funcionalidade?\n");
