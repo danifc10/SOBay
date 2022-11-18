@@ -283,6 +283,7 @@ int getUserBalance(char * username){
 	for(j = 0;strcmp(utilizadores[j].nome,username)!=0;j++){
 		printf("%d\n",j);
 	}
+	return utilizadores[j].saldo;
 }
 void mostrausers(){
 }
