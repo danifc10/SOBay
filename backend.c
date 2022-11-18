@@ -338,7 +338,7 @@ int main()
 	}
 
 	// --------------variaveis para teste------------
-	//char comando[100];
+	char comando[100];
 	char *nome = "daniela";
 	char *pass = "ola";
 	int aux1;
