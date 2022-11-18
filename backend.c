@@ -301,9 +301,9 @@ int updateUserBalance(char * username, int value){
 }
 void mostrausers(){
 	int j,tamanho = loadUsersFile(USER_FILENAME);
-	/*for(j = 0;j<tamanho;j++){
+	for(j = 0;j<tamanho;j++){
 		printf("nome: %s pass: %s saldo: %d \n",utilizadores[j].nome,utilizadores[j].password,utilizadores[j].saldo);
-	}*/
+	}
 }
 
 int main()
@@ -354,9 +354,9 @@ int main()
 	int b = isUserValid(nome, pass); // 1 se existe 0 se nao existe ou pass errada
 	printf("%d\n", b);
 	saveUsersFile(USER_FILENAME);
-	//mostrausers();
+	mostrausers();
 	printf("saldo do utilizador/a : %d",getUserBalance(nome));
-	
+	mostrausers();
 	do
 	{
 		printf("\n\n Deseja testar que funcionalidade?\n");
