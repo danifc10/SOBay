@@ -209,16 +209,15 @@ int loadUsersFile(char *pathname)
 	int j =0;
 	while(feof(f)==0)
 	{
-		user * aux=NULL;
-		aux= malloc(sizeof(user));
-		if (!aux)
+	
+		utilizadores[j]= malloc(sizeof(user));
+		if (!utilizadores[j])
 		{
 			printf("ERRO: %s\n", getLastErrorText());
 			return -1;
 		}
 		fgets(buffer, 100, f);
-		sscanf(buffer, "%s %s %d", aux->nome, aux->password, &aux->saldo);
-		utilizadores[j]=*aux;
+		sscanf(buffer, "%s %s %d", utilizadores[j]->nome, utilizadores[j]->password, &utilizadores[j]->saldo);
 		j++;
 	}
 	fclose(f);
