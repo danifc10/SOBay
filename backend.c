@@ -391,7 +391,7 @@ int main()
 	mostrausers();
 	printf("\n-----------Teste funcao getUserBalance----------------\n");
 	printf("\n>>Saldo do utilizador/a %s : %d\n", nome, getUserBalance(nome));
-	updateUserBalance(nome, 10);
+	//updateUserBalance(nome, 10);
 	printf("\n-----------Lista dos users depois de atualizada----------------\n");
 	mostrausers();
 	saveUsersFile(USER_FILENAME);
