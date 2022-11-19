@@ -368,7 +368,8 @@ int main()
 	mostraItem();
 
 	printf("\n-----------Leitura do ficheiro dos utilizadores----------------\n");
-	printf("\n>>Numero de utilizadores: %d\n", loadUsersFile(USER_FILENAME));
+	utilizadores_len=loadUsersFile(USER_FILENAME);
+	printf("\n>>Numero de utilizadores: %d\n",utilizadores_len );
 	
 	printf("\n-----------Verificacao de credenciais do user----------------\n");
 	int b = isUserValid(nome, pass); // 1 se existe 0 se nao existe ou pass errada
