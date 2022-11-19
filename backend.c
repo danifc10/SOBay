@@ -371,7 +371,7 @@ int main()
 	// --------------variaveis para teste------------
 
 	char *nome = "daniela";
-	char *pass = "ola";
+	char *pass = "ola" ;
 	int aux1;
 
 	printf("\n-----------Informacao do pid do backend e promotores-----------\n");
