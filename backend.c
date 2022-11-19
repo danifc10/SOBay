@@ -209,23 +209,24 @@ int loadUsersFile(char *pathname)
 	while(feof(f)==0){++j;}
 	utilizadores_len=j;
 	fclose(f);
-	f=fopen(pathname,"rt");
-	if (f == NULL){
+	FILE *f1
+	f1=fopen(pathname,"rt");
+	if (f1 == NULL){
 		printf("ERRO: %s\n", getLastErrorText());
-		fclose(f);
+		fclose(f1);
 		return -1;
 	}
 	utilizadores=malloc(utilizadores_len * sizeof(user));
 	if(!utilizadores){	
 		printf("ERRO: %s\n", getLastErrorText());
-		fclose(f);
+		fclose(f1);
 		return -1;
 	}
 	while(feof(f)==0){
-		fgets(buffer,100,f);
+		fgets(buffer,100,f1);
 		sscanf(buffer,"%s %s %d\n",utilizadores[j].nome,utilizadores[j].password,&utilizadores[j].saldo);
 	}
-	fclose(f);
+	fclose(f1);
 	return j;
 }
 
