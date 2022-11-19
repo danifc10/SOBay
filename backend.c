@@ -14,6 +14,7 @@
 
 item *i;
 user *utilizadores;
+int utilizadores_len;
 void mostraItem()
 {
 	while (i)
@@ -195,33 +196,6 @@ char *recebePromotor(int fd_p2b[2])
 
 int loadUsersFile(char *pathname)
 {
-
-	FILE *f;
-	char Linha[100];
-
-	f = fopen(pathname, "rb");
-
-	if (f == NULL)
-	{
-		printf("\nERRO: %s", getLastErrorText());
-		fclose(f);
-		return -1;
-	}
-	int j = 0;
-	while (fgets(Linha, 100, f))
-	{
-		char username[100], password[100];
-		int saldo;
-		sscanf(Linha, "%s %s %d", username, password, &saldo);
-		j++;
-	}
-	fclose(f);
-	return j;
-}
-
-int saveUsersFile(char *filename)
-{
-	int tamanho = loadUsersFile(filename);
 	utilizadores = malloc(tamanho * sizeof(user));
 	if (!utilizadores)
 	{
@@ -237,13 +211,21 @@ int saveUsersFile(char *filename)
 		fclose(f);
 		return -1;
 	}
-	for (int j = 0; j < tamanho; j++)
+
+	int j =0;
+	while(feof(f)==0)
 	{
 		fgets(buffer, 100, f);
 		sscanf(buffer, "%s %s %d", utilizadores[j].nome, utilizadores[j].password, &utilizadores[j].saldo);
+		j++;
 	}
 	fclose(f);
-	return 0;
+	return j;
+}
+
+int saveUsersFile(char *filename)
+{
+	
 }
 int isUserValid(char *username, char *password)
 {
@@ -299,6 +281,9 @@ int getUserBalance(char *username)
 	}
 	if (strcmp(utilizadores[j].nome, username) == 0)
 	{
+		if(utilizadores[j].saldo>0){
+			utilizadores[j].saldo=utilizadores[j].saldo - 1;
+		}
 		return utilizadores[j].saldo;
 	}
 	return -1;
@@ -315,6 +300,9 @@ int updateUserBalance(char *username, int value)
 	}
 	if (strcmp(utilizadores[j].nome, username) == 0)
 	{
+		if(utilizadores[j].saldo>0){
+			utilizadores[j].saldo=utilizadores[j].saldo - 1;
+		}
 		utilizadores[j].saldo = value;
 		return 0;
 	}
@@ -372,13 +360,13 @@ int main()
 	char *pass = "ola";
 	int aux1;
 
+	printf("\n-----------Informacao do pid do backend e promotores-----------\n");
+	printf("\n>>Pid backend: %d Pid promotor: %d\n", getpid(), pid); 
+	
 	printf("\n-----------Leitura do ficheiro dos items--------------------\n");
 	leFicheiroItem("items.txt");
 	mostraItem();
 
-	printf("\n-----------Informacao do pid do backend e promotores-----------\n");
-	printf("\n>>Pid backend: %d Pid promotor: %d\n", getpid(), pid); 
-	
 	printf("\n-----------Leitura do ficheiro dos utilizadores----------------\n");
 	printf("\n>>Numero de utilizadores: %d\n", loadUsersFile(USER_FILENAME));
 	
@@ -391,7 +379,7 @@ int main()
 	printf("\n-----------Lista dos users----------------\n");
 	mostrausers();
 	printf("\n-----------Teste funcao getUserBalance----------------\n");
-	printf("\n>>Saldo do utilizador/a : %d\n", getUserBalance(nome));
+	printf("\n>>Saldo do utilizador/a %s : %d\n",nome, getUserBalance(nome));
 	updateUserBalance(nome, 10);
 	printf("\n-----------Lista dos users depois de atualizada----------------\n");
 	mostrausers();
