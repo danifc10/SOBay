@@ -206,8 +206,8 @@ int loadUsersFile(char *pathname)
 	}
 
 	int j = 0;
+	user aux, *new = (user*)malloc(sizeof(user));
 	while(feof(f)==0){
-		user aux, *new = (user*)malloc(sizeof(user));
 		if(!new){
 			printf("ERRO: %s\n", getLastErrorText());
 			fclose(f);
