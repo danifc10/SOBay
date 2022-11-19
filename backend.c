@@ -13,7 +13,7 @@
 
 
 item *i;
-user *utilizadores;
+user **utilizadores;
 int utilizadores_len;
 void mostraItem()
 {
