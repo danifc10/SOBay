@@ -217,7 +217,7 @@ int loadUsersFile(char *pathname)
 			return -1;
 		}
 		fgets(buffer, 100, f);
-		sscanf(buffer, "%s %s %d", utilizadores[j]->nome, utilizadores[j]->password, &utilizadores[j]->saldo);
+		sscanf(buffer, "%s %s %d", utilizadores[j].nome, utilizadores[j].password, &utilizadores[j].saldo);
 		j++;
 	}
 	fclose(f);
