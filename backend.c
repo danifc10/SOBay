@@ -9,6 +9,8 @@
 #include <sys/wait.h>
 #include <time.h>
 #include "users_lib.h"
+#include <errno.h>
+
 
 item *i;
 user *utilizadores;
@@ -67,11 +69,11 @@ void leFicheiroItem(char *nomeFich)
 	FILE *f;
 	char Linha[100];
 
-	f = fopen("items.txt", "rb");
+	f = fopen(nomeFich, "rb");
 
 	if (f == NULL)
 	{
-		printf("Erro ao abrir ficheiro");
+		printf("ERRO ao abrir ficheiro\n");
 		return;
 	}
 
@@ -200,7 +202,7 @@ int loadUsersFile(char *pathname)
 
 	if (f == NULL)
 	{
-		printf("\nErro ao abrir ficheiro");
+		printf("\nERRO: %s", getLastErrorText());
 		fclose(f);
 		return -1;
 	}
@@ -216,24 +218,28 @@ int loadUsersFile(char *pathname)
 	return j;
 }
 
-int saveUsersFile(char * filename){
-	int tamanho =loadUsersFile(filename);
-	utilizadores=malloc(tamanho * sizeof(user));
-	if(!utilizadores){
-		printf("erro ao alocar memoria\n");
+int saveUsersFile(char *filename)
+{
+	int tamanho = loadUsersFile(filename);
+	utilizadores = malloc(tamanho * sizeof(user));
+	if (!utilizadores)
+	{
+		printf("ERRO: %s\n", getLastErrorText());
 		return -1;
 	}
 	char buffer[100];
 	FILE *f;
-	f=fopen(filename,"rt");
-	if(f==NULL){
-		printf("erro ao abrir ficheiro %s\n",filename);
+	f = fopen(filename, "rt");
+	if (f == NULL)
+	{
+		printf("ERRO: %s\n", getLastErrorText());
 		fclose(f);
 		return -1;
 	}
-	for(int j = 0;j<tamanho;j++){
-		fgets(buffer,100,f);
-		sscanf(buffer,"%s %s %d",utilizadores[j].nome,utilizadores[j].password,&utilizadores[j].saldo);
+	for (int j = 0; j < tamanho; j++)
+	{
+		fgets(buffer, 100, f);
+		sscanf(buffer, "%s %s %d", utilizadores[j].nome, utilizadores[j].password, &utilizadores[j].saldo);
 	}
 	fclose(f);
 	return 0;
@@ -247,7 +253,7 @@ int isUserValid(char *username, char *password)
 
 	if (f == NULL)
 	{
-		printf("\nErro ao abrir ficheiro");
+		printf("\nERRO:	 %s", getLastErrorText());
 		return -1;
 	}
 	int i = 0;
@@ -280,39 +286,50 @@ int isUserValid(char *username, char *password)
 		return 0;
 	}
 }
-int getUserBalance(char * username){
-	int j,tamanho = loadUsersFile(USER_FILENAME);
-	for(j = 0;strcmp(utilizadores[j].nome,username)!=0;j++){
-		if(j==tamanho){
+int getUserBalance(char *username)
+{
+	int j, tamanho = loadUsersFile(USER_FILENAME);
+	for (j = 0; strcmp(utilizadores[j].nome, username) != 0; j++)
+	{
+		if (j == tamanho)
+		{
 			break;
 		}
 	}
-	if(strcmp(utilizadores[j].nome,username)==0){
+	if (strcmp(utilizadores[j].nome, username) == 0)
+	{
 		return utilizadores[j].saldo;
 	}
 	return -1;
 }
-int updateUserBalance(char * username, int value){
-	int j,tamanho = loadUsersFile(USER_FILENAME);
-	for(j = 0;strcmp(utilizadores[j].nome,username)!=0;j++){
-		if(j==tamanho){
+int updateUserBalance(char *username, int value)
+{
+	int j, tamanho = loadUsersFile(USER_FILENAME);
+	for (j = 0; strcmp(utilizadores[j].nome, username) != 0; j++)
+	{
+		if (j == tamanho)
+		{
 			break;
 		}
-
 	}
-	if(strcmp(utilizadores[j].nome,username)==0){
-		utilizadores[j].saldo=value;
+	if (strcmp(utilizadores[j].nome, username) == 0)
+	{
+		utilizadores[j].saldo = value;
 		return 0;
 	}
 	return -1;
 }
-void mostrausers(){
-	int j,tamanho = loadUsersFile(USER_FILENAME);
-	for(j = 0;j<tamanho;j++){
-		printf("nome: %s pass: %s saldo: %d \n",utilizadores[j].nome,utilizadores[j].password,utilizadores[j].saldo);
+void mostrausers()
+{
+	int j, tamanho = loadUsersFile(USER_FILENAME);
+	for (j = 0; j < tamanho; j++)
+	{
+		printf("nome: %s pass: %s saldo: %d \n", utilizadores[j].nome, utilizadores[j].password, utilizadores[j].saldo);
 	}
 }
-
+const char * getLastErrorText(){
+	return strerror(errno);;
+}
 int main()
 {
 	char outputPromotores[100];
@@ -353,17 +370,21 @@ int main()
 	char *pass = "ola";
 	int aux1;
 
-
 	leFicheiroItem("items.txt");
-	mostraItem();
-	printf("\npid backend: %d pid promotor: %d\n", getpid(), pid);
-	printf("numero de utilizadores: %d\n",loadUsersFile(USER_FILENAME));
+	//mostraItem();
+	printf("\npid backend: %d pid promotor: %d\n", getpid(), pid); 
+	
+	
+	//-----NOME DO FICHEIRO ERRADO PARA VER O ERRO QUE RETORNA COM A FUNCAO GETLASTERRORTXT!!!
+	printf("numero de utilizadores: %d\n", loadUsersFile("OLA"));
+	
+	
 	int b = isUserValid(nome, pass); // 1 se existe 0 se nao existe ou pass errada
 	printf("%d\n", b);
 	saveUsersFile(USER_FILENAME);
 	mostrausers();
-	printf("saldo do utilizador/a : %d\n",getUserBalance(nome));
-	updateUserBalance(nome,10);
+	printf("saldo do utilizador/a : %d\n", getUserBalance(nome));
+	updateUserBalance(nome, 10);
 	mostrausers();
 	do
 	{
