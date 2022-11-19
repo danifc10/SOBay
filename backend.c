@@ -30,7 +30,7 @@ void mostraItem()
 	}
 }
 
-void adicionaItem(item **i, char *n, int id, char *ctg, int vb, int cj, int tmp)
+void adicionaItem( char *n, int id, char *ctg, int vb, int cj, int tmp)
 {
 	item *aux, *new = malloc(sizeof(item));
 
@@ -44,13 +44,13 @@ void adicionaItem(item **i, char *n, int id, char *ctg, int vb, int cj, int tmp)
 		new->compra_ja = cj;
 		new->prox = NULL;
 
-		if (*i == NULL)
+		if (i == NULL)
 		{
-			*i = new;
+			i = new;
 		}
 		else
 		{
-			aux = *i;
+			aux = i;
 			while (aux->prox)
 			{
 				aux = aux->prox;
@@ -87,7 +87,7 @@ void leFicheiroItem(char *nomeFich)
 		fgets(Linha, 100, f);
 		sscanf(Linha, "%d %s %s %d %d %d %s %s", &id, &nome, &categoria, &valor_base, &compra_ja, &tempo, &nomeU, &licitador);
 
-		adicionaItem(&i, nome, id, categoria, valor_base, compra_ja, tempo);
+		adicionaItem(nome, id, categoria, valor_base, compra_ja, tempo);
 	}
 
 	fclose(f);
@@ -376,7 +376,7 @@ int main()
 	printf("\n>>Pid backend: %d Pid promotor: %d\n", getpid(), pid); 
 	
 	printf("\n-----------Leitura do ficheiro dos items--------------------\n");
-	leFicheiroItem("items.txt");
+	leFicheiroItem(FITEM);
 	mostraItem();
 
 	printf("\n-----------Leitura do ficheiro dos utilizadores----------------\n");
