@@ -212,11 +212,11 @@ int loadUsersFile(char *pathname)
 	fclose(f);
 	FILE *f1;
 	f1=fopen(pathname,"rt");
-	utilizadores=(user *) malloc(j*sizeof(user))
+	utilizadores=(user *) malloc(j*sizeof(user));
 	printf("passei aqui 1\n");
 	while(feof(f1)==0){
 		fgets(buffer,100,f1);
-		sscanf(buffer"%s %s %d",utilizadores[j].nome,utilizadores[j].password,&utilizadores[j].saldo);
+		sscanf(buffer,"%s %s %d",utilizadores[j].nome,utilizadores[j].password,&utilizadores[j].saldo);
 		j++;
 	}
 	fclose(f1);
