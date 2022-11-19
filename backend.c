@@ -209,7 +209,7 @@ int loadUsersFile(char *pathname)
 	while(fgets(buffer,100,f)){
 		user *new=(user *)malloc(sizeof(user));
 		sscanf(buffer,"%s %s %d",new->nome,new->password,&new->saldo);
-		utilizadores[j]=new;
+		utilizadores[j]=*new;
 		j++;
 	}
 
