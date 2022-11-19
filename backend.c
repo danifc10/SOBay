@@ -332,6 +332,11 @@ const char *getLastErrorText()
 	return strerror(errno);
 	;
 }
+void freeUsers(){
+	for(int j=0;j<utilizadores_len;j++){
+		free(utilizadores[j]);
+	}
+}
 int main()
 {
 	char outputPromotores[100];
@@ -395,6 +400,7 @@ int main()
 	printf("\n-----------Lista dos users depois de atualizada----------------\n");
 	mostrausers();
 	saveUsersFile(USER_FILENAME);
+	
 	do
 	{
 		printf("\n\n>>Deseja testar que comando?\n");
