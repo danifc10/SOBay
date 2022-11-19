@@ -17,7 +17,7 @@ struct Item{
 };
 
 void mostraItem();
-void adicionaItem(item **i, char *n, int id, char *ctg, int vb, int cj, int tmp);
+void adicionaItem(char *n, int id, char *ctg, int vb, int cj, int tmp);
 void leFicheiroItem(char *nomeFich);
 
 #endif
