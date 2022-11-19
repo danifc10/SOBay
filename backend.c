@@ -11,7 +11,6 @@
 #include "users_lib.h"
 #include <errno.h>
 
-
 item *i;
 user *utilizadores;
 int utilizadores_len;
@@ -30,7 +29,7 @@ void mostraItem()
 	}
 }
 
-void adicionaItem( char *n, int id, char *ctg, int vb, int cj, int tmp)
+void adicionaItem(char *n, int id, char *ctg, int vb, int cj, int tmp)
 {
 	item *aux, *new = malloc(sizeof(item));
 
@@ -206,12 +205,12 @@ int loadUsersFile(char *pathname)
 		return -1;
 	}
 
-	int j =0;
+	int j = 0;
 
-	while(feof(f)==0)
+	while (feof(f) == 0)
 	{
-	
-		aux=malloc(sizeof(user));
+
+		aux = malloc(sizeof(user));
 		if (!aux)
 		{
 			printf("ERRO: %s\n", getLastErrorText());
@@ -219,7 +218,7 @@ int loadUsersFile(char *pathname)
 		}
 		fgets(buffer, 100, f);
 		sscanf(buffer, "%s %s %d", aux->nome, aux->password, &aux->saldo);
-		(utilizadores+j)=aux;
+		(utilizadores + j) = aux;
 		j++;
 	}
 	fclose(f);
@@ -229,17 +228,18 @@ int loadUsersFile(char *pathname)
 int saveUsersFile(char *filename)
 {
 	FILE *f;
-	f=fopen(filename,"wt");
-	if(f==NULL){
+	f = fopen(filename, "wt");
+	if (f == NULL)
+	{
 		printf("ERRO: %s\n", getLastErrorText());
 		fclose(f);
 		return -1;
 	}
-	for(int j =0;j<utilizadores_len;j++){
-		fprintf(f,"%s %s %d\n",utilizadores[j].nome,utilizadores[j].password,utilizadores[j].saldo);
+	for (int j = 0; j < utilizadores_len; j++)
+	{
+		fprintf(f, "%s %s %d\n", utilizadores[j].nome, utilizadores[j].password, utilizadores[j].saldo);
 	}
 	fclose(f);
-	
 }
 int isUserValid(char *username, char *password)
 {
@@ -295,8 +295,9 @@ int getUserBalance(char *username)
 	}
 	if (strcmp(utilizadores[j].nome, username) == 0)
 	{
-		if(utilizadores[j].saldo>0){
-			utilizadores[j].saldo=utilizadores[j].saldo - 1;
+		if (utilizadores[j].saldo > 0)
+		{
+			utilizadores[j].saldo = utilizadores[j].saldo - 1;
 		}
 		return utilizadores[j].saldo;
 	}
@@ -314,8 +315,9 @@ int updateUserBalance(char *username, int value)
 	}
 	if (strcmp(utilizadores[j].nome, username) == 0)
 	{
-		if(utilizadores[j].saldo>0){
-			utilizadores[j].saldo=utilizadores[j].saldo - 1;
+		if (utilizadores[j].saldo > 0)
+		{
+			utilizadores[j].saldo = utilizadores[j].saldo - 1;
 		}
 		utilizadores[j].saldo = value;
 		return 0;
@@ -325,13 +327,15 @@ int updateUserBalance(char *username, int value)
 void mostrausers()
 {
 
-	for ( int j = 0; j < utilizadores_len; j++)
+	for (int j = 0; j < utilizadores_len; j++)
 	{
 		printf("nome: %s pass: %s saldo: %d \n", utilizadores[j].nome, utilizadores[j].password, utilizadores[j].saldo);
 	}
 }
-const char * getLastErrorText(){
-	return strerror(errno);;
+const char *getLastErrorText()
+{
+	return strerror(errno);
+	;
 }
 int main()
 {
@@ -371,28 +375,28 @@ int main()
 	// --------------variaveis para teste------------
 
 	char *nome = "daniela";
-	char *pass = "ola" ;
+	char *pass = "ola";
 	int aux1;
 
 	printf("\n-----------Informacao do pid do backend e promotores-----------\n");
-	printf("\n>>Pid backend: %d Pid promotor: %d\n", getpid(), pid); 
-	
+	printf("\n>>Pid backend: %d Pid promotor: %d\n", getpid(), pid);
+
 	printf("\n-----------Leitura do ficheiro dos items--------------------\n");
 	leFicheiroItem(FITEM);
 	mostraItem();
 
 	printf("\n-----------Leitura do ficheiro dos utilizadores----------------\n");
-	utilizadores_len=loadUsersFile(USER_FILENAME);
-	printf("\n>>Numero de utilizadores: %d\n",utilizadores_len );
-	
+	utilizadores_len = loadUsersFile(USER_FILENAME);
+	printf("\n>>Numero de utilizadores: %d\n", utilizadores_len);
+
 	printf("\n-----------Verificacao de credenciais do user----------------\n");
 	int b = isUserValid(nome, pass); // 1 se existe 0 se nao existe ou pass errada
 	printf("\n>>(1-existe ; 0-nao existe ou pass errada ):: %d\n", b);
-	
+
 	printf("\n-----------Lista dos users----------------\n");
 	mostrausers();
 	printf("\n-----------Teste funcao getUserBalance----------------\n");
-	printf("\n>>Saldo do utilizador/a %s : %d\n",nome, getUserBalance(nome));
+	printf("\n>>Saldo do utilizador/a %s : %d\n", nome, getUserBalance(nome));
 	updateUserBalance(nome, 10);
 	printf("\n-----------Lista dos users depois de atualizada----------------\n");
 	mostrausers();
@@ -412,8 +416,8 @@ int main()
 	valores.sival_int = -1;
 	if (resposta == 'y')
 	{
-		 // tem que aparecer 3 promo antes de  terminar o processo;
-		for(int i = 0 ; i<=2 ; i++)
+		// tem que aparecer 3 promo antes de  terminar o processo;
+		for (int i = 0; i <= 2; i++)
 		{
 			strcpy(outputPromotores, recebePromotor(fd_p2b));
 			printf("\nmsg:%s\n", outputPromotores);
