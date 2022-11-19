@@ -207,6 +207,7 @@ int loadUsersFile(char *pathname)
 	}
 
 	int j =0;
+
 	while(feof(f)==0)
 	{
 	
