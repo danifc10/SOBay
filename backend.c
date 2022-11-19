@@ -196,12 +196,6 @@ char *recebePromotor(int fd_p2b[2])
 
 int loadUsersFile(char *pathname)
 {
-	utilizadores = malloc(tamanho * sizeof(user));
-	if (!utilizadores)
-	{
-		printf("ERRO: %s\n", getLastErrorText());
-		return -1;
-	}
 	char buffer[100];
 	FILE *f;
 	f = fopen(filename, "rt");
@@ -215,8 +209,16 @@ int loadUsersFile(char *pathname)
 	int j =0;
 	while(feof(f)==0)
 	{
+		user * aux=NULL;
+		aux= malloc(sizeof(user));
+		if (!aux)
+		{
+			printf("ERRO: %s\n", getLastErrorText());
+			return -1;
+		}
 		fgets(buffer, 100, f);
-		sscanf(buffer, "%s %s %d", utilizadores[j].nome, utilizadores[j].password, &utilizadores[j].saldo);
+		sscanf(buffer, "%s %s %d", aux->nome, aux->password, &aux->saldo);
+		*(utilizadores+j)=aux;
 		j++;
 	}
 	fclose(f);
