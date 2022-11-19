@@ -393,6 +393,7 @@ int main()
 	updateUserBalance(nome, 10);
 	printf("\n-----------Lista dos users depois de atualizada----------------\n");
 	mostrausers();
+	saveUsersFile(USER_FILENAME);
 	do
 	{
 		printf("\n\n>>Deseja testar que comando?\n");
