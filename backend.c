@@ -12,7 +12,7 @@
 #include <errno.h>
 
 item *i;
-user *utilizadores;
+user **utilizadores;
 void mostraItem()
 {
 	while (i)
@@ -28,7 +28,7 @@ void mostraItem()
 	}
 }
 
-void adicionaItem(char *n, int id, char *ctg, int vb, int cj, int tmp)
+void adicionaItem( char *n, int id, char *ctg, int vb, int cj, int tmp)
 {
 	item *aux, *new = malloc(sizeof(item));
 
