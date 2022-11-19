@@ -13,7 +13,7 @@
 
 
 item *i;
-user *utilizadores;
+user **utilizadores;
 int utilizadores_len;
 void mostraItem()
 {
@@ -210,7 +210,7 @@ int loadUsersFile(char *pathname)
 	while(feof(f)==0)
 	{
 	
-		utilizadores[j]=(user *)malloc(sizeof(user));
+		utilizadores[j]=malloc(sizeof(user));
 		if (!utilizadores[j])
 		{
 			printf("ERRO: %s\n", getLastErrorText());
