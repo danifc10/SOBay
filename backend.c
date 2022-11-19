@@ -207,15 +207,12 @@ int loadUsersFile(char *pathname)
 
 	int j = 0;
 	while(fgets(buffer,100,f)){
-		printf("passei aqui 1\n");
 		++j;
 	}
 	fclose(f);
-	printf("passei aqui 2\n");
 	FILE *f1;
 	f1=fopen(pathname,"rt");
 	utilizadores=(user *) malloc(j*sizeof(user));
-	printf("passei aqui 3\n");
 	j=0;
 	while(feof(f1)==0){
 		fgets(buffer,100,f1);
