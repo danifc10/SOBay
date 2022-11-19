@@ -198,7 +198,7 @@ int loadUsersFile(char *pathname)
 {
 	char buffer[100];
 	FILE *f;
-	f = fopen(filename, "rt");
+	f = fopen(pathname, "rt");
 	if (f == NULL)
 	{
 		printf("ERRO: %s\n", getLastErrorText());
@@ -237,7 +237,7 @@ int saveUsersFile(char *filename)
 	for(int j =0;j<utilizadores_len;j++){
 		fprintf(f,"%s %s %d\n",utilizadores[j].nome,utilizadores[j].password,utilizadores[j].saldo);
 	}
-	fclose();
+	fclose(f);
 	
 }
 int isUserValid(char *username, char *password)
