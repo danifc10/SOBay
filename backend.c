@@ -11,7 +11,6 @@
 #include "users_lib.h"
 #include <errno.h>
 
-
 item *i;
 user *utilizadores;
 void mostraItem()
@@ -29,7 +28,7 @@ void mostraItem()
 	}
 }
 
-void adicionaItem(item **i, char *n, int id, char *ctg, int vb, int cj, int tmp)
+void adicionaItem(char *n, int id, char *ctg, int vb, int cj, int tmp)
 {
 	item *aux, *new = malloc(sizeof(item));
 
@@ -43,13 +42,13 @@ void adicionaItem(item **i, char *n, int id, char *ctg, int vb, int cj, int tmp)
 		new->compra_ja = cj;
 		new->prox = NULL;
 
-		if (*i == NULL)
+		if (i == NULL)
 		{
-			*i = new;
+			i = new;
 		}
 		else
 		{
-			aux = *i;
+			aux = i;
 			while (aux->prox)
 			{
 				aux = aux->prox;
@@ -86,7 +85,7 @@ void leFicheiroItem(char *nomeFich)
 		fgets(Linha, 100, f);
 		sscanf(Linha, "%d %s %s %d %d %d %s %s", &id, &nome, &categoria, &valor_base, &compra_ja, &tempo, &nomeU, &licitador);
 
-		adicionaItem(&i, nome, id, categoria, valor_base, compra_ja, tempo);
+		adicionaItem(nome, id, categoria, valor_base, compra_ja, tempo);
 	}
 
 	fclose(f);
@@ -328,8 +327,10 @@ void mostrausers()
 		printf("nome: %s pass: %s saldo: %d \n", utilizadores[j].nome, utilizadores[j].password, utilizadores[j].saldo);
 	}
 }
-const char * getLastErrorText(){
-	return strerror(errno);;
+const char *getLastErrorText()
+{
+	return strerror(errno);
+	;
 }
 int main()
 {
@@ -373,19 +374,19 @@ int main()
 	int aux1;
 
 	printf("\n-----------Leitura do ficheiro dos items--------------------\n");
-	leFicheiroItem("items.txt");
+	leFicheiroItem(ITEM_FILENAME);
 	mostraItem();
 
 	printf("\n-----------Informacao do pid do backend e promotores-----------\n");
-	printf("\n>>Pid backend: %d Pid promotor: %d\n", getpid(), pid); 
-	
+	printf("\n>>Pid backend: %d Pid promotor: %d\n", getpid(), pid);
+
 	printf("\n-----------Leitura do ficheiro dos utilizadores----------------\n");
 	printf("\n>>Numero de utilizadores: %d\n", loadUsersFile(USER_FILENAME));
-	
+
 	printf("\n-----------Verificacao de credenciais do user----------------\n");
 	int b = isUserValid(nome, pass); // 1 se existe 0 se nao existe ou pass errada
 	printf("\n>>(1-existe ; 0-nao existe ou pass errada ):: %d\n", b);
-	
+
 	saveUsersFile(USER_FILENAME);
 
 	printf("\n-----------Lista dos users----------------\n");
@@ -410,8 +411,8 @@ int main()
 	valores.sival_int = -1;
 	if (resposta == 'y')
 	{
-		 // tem que aparecer 3 promo antes de  terminar o processo;
-		for(int i = 0 ; i<=2 ; i++)
+		// tem que aparecer 3 promo antes de  terminar o processo;
+		for (int i = 0; i <= 2; i++)
 		{
 			strcpy(outputPromotores, recebePromotor(fd_p2b));
 			printf("\nmsg:%s\n", outputPromotores);

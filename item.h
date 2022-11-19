@@ -3,6 +3,7 @@
 #include <string.h>
 #ifndef ITEM_H
 #define ITEM_H
+#define ITEM_FILENAME
 
 typedef struct Item item, *ptr;
 struct Item{
@@ -16,7 +17,7 @@ struct Item{
 };
 
 void mostraItem();
-void adicionaItem(item **i, char *n, int id, char *ctg, int vb, int cj, int tmp);
+void adicionaItem(char *n, int id, char *ctg, int vb, int cj, int tmp);
 void leFicheiroItem(char *nomeFich);
 
 #endif
