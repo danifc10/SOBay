@@ -231,7 +231,7 @@ int saveUsersFile(char *filename)
 	}
 	for (int j = 0; j < utilizadores_len; j++)
 	{
-		fprintf(f, "%s %s %d\n", utilizadores[j].nome, utilizadores[j].password, utilizadores[j].saldo);
+		fprintf(f, "%s %s %d", utilizadores[j].nome, utilizadores[j].password, utilizadores[j].saldo);
 	}
 	fclose(f);
 }
