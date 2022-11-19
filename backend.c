@@ -207,9 +207,14 @@ int loadUsersFile(char *pathname)
 
 	int j = 0;
 	while(fgets(buffer,100,f)){
-		++j;
+		user *new=(user *)malloc(sizeof(user));
+		sscanf(buffer,"%s %s %d",new->nome,new->password,&new->saldo);
+		utilizadores[j]=new;
+		j++;
 	}
+
 	fclose(f);
+	/*
 	FILE *f1;
 	f1=fopen(pathname,"rt");
 	utilizadores=(user *) malloc(j*sizeof(user));
@@ -218,7 +223,7 @@ int loadUsersFile(char *pathname)
 		sscanf(buffer,"%s %s %d",utilizadores[j].nome,utilizadores[j].password,&utilizadores[j].saldo);
 		j++;
 	}
-	fclose(f1);
+	fclose(f1);*/
 	return j;
 }
 
