@@ -205,7 +205,7 @@ int loadUsersFile(char *pathname)
 		return -1;
 	}
 	int j = 0;
-	while(feof(f)==0){j++;}
+	while(fgets(buffer, 100,f)){j++;}
 	fclose(f);
 	FILE *f1;
 	f1=fopen(pathname,"rt");
