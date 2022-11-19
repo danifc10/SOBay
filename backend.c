@@ -12,7 +12,7 @@
 #include <errno.h>
 
 item *i;
-user *utilizadores;
+user **utilizadores;
 void mostraItem()
 {
 	while (i)
