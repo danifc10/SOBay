@@ -282,10 +282,10 @@ int isUserValid(char *username, char *password)
 }
 int getUserBalance(char *username)
 {
-	int j, tamanho = loadUsersFile(USER_FILENAME);
+	int j;
 	for (j = 0; strcmp(utilizadores[j].nome, username) != 0; j++)
 	{
-		if (j == tamanho)
+		if (j == utilizadores_len)
 		{
 			break;
 		}
@@ -301,10 +301,10 @@ int getUserBalance(char *username)
 }
 int updateUserBalance(char *username, int value)
 {
-	int j, tamanho = loadUsersFile(USER_FILENAME);
+	int j;
 	for (j = 0; strcmp(utilizadores[j].nome, username) != 0; j++)
 	{
-		if (j == tamanho)
+		if (j == utilizadores_len)
 		{
 			break;
 		}
@@ -321,8 +321,8 @@ int updateUserBalance(char *username, int value)
 }
 void mostrausers()
 {
-	int j, tamanho = loadUsersFile(USER_FILENAME);
-	for (j = 0; j < tamanho; j++)
+
+	for ( int j = 0; j < utilizadores_len; j++)
 	{
 		printf("nome: %s pass: %s saldo: %d \n", utilizadores[j].nome, utilizadores[j].password, utilizadores[j].saldo);
 	}
