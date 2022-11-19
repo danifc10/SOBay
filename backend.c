@@ -205,7 +205,7 @@ int loadUsersFile(char *pathname)
 		return -1;
 	}
 	int j = 0;
-	while(fgets(buffer,100,f)){
+	while(feof(f)==0){
 		printf("\n\n%d\n\n",j);
 		j++;
 	}
