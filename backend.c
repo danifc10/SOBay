@@ -28,7 +28,11 @@ void mostraItem()
 	}
 }
 
+<<<<<<< HEAD
 void adicionaItem(char *n, int id, char *ctg, int vb, int cj, int tmp)
+=======
+void adicionaItem( char *n, int id, char *ctg, int vb, int cj, int tmp)
+>>>>>>> d16db34305b1dd06e24b53540ec5a599e5e50910
 {
 	item *aux, *new = malloc(sizeof(item));
 
@@ -206,12 +210,30 @@ int loadUsersFile(char *pathname)
 		fclose(f);
 		return -1;
 	}
+<<<<<<< HEAD
 	int j = 0;
 	while (fgets(Linha, 100, f))
 	{
 		char username[100], password[100];
 		int saldo;
 		sscanf(Linha, "%s %s %d", username, password, &saldo);
+=======
+
+	int j =0;
+
+	while(feof(f)==0)
+	{
+		user* aux;
+		aux=malloc(sizeof(user));
+		if (!aux)
+		{
+			printf("ERRO: %s\n", getLastErrorText());
+			return -1;
+		}
+		fgets(buffer, 100, f);
+		sscanf(buffer, "%s %s %d", aux->nome, aux->password, &aux->saldo);
+		(utilizadores+j)=*aux;
+>>>>>>> d16db34305b1dd06e24b53540ec5a599e5e50910
 		j++;
 	}
 	fclose(f);
@@ -374,7 +396,11 @@ int main()
 	int aux1;
 
 	printf("\n-----------Leitura do ficheiro dos items--------------------\n");
+<<<<<<< HEAD
 	leFicheiroItem(ITEM_FILENAME);
+=======
+	leFicheiroItem(FITEM);
+>>>>>>> d16db34305b1dd06e24b53540ec5a599e5e50910
 	mostraItem();
 
 	printf("\n-----------Informacao do pid do backend e promotores-----------\n");
