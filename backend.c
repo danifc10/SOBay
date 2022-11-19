@@ -384,7 +384,7 @@ int main()
 	
 	printf("\n-----------Verificacao de credenciais do user----------------\n");
 	int b = isUserValid(nome, pass); // 1 se existe 0 se nao existe ou pass errada
-	printf("\n>>1 - existe ; 0 - nao existe ou pass errada :: %d\n", b);
+	printf("\n>>(1-existe ; 0-nao existe ou pass errada ):: %d\n", b);
 	
 	saveUsersFile(USER_FILENAME);
 
