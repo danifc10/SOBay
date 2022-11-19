@@ -185,6 +185,7 @@ int executaPromotor(int fd_p2b[2])
 	}
 	return f;
 }
+
 char *recebePromotor(int fd_p2b[2])
 {
 	char msg[100];
@@ -366,43 +367,51 @@ int main()
 	}
 
 	// --------------variaveis para teste------------
+
 	char *nome = "daniela";
 	char *pass = "ola";
 	int aux1;
 
+	printf("\n-----------Leitura do ficheiro dos items--------------------\n");
 	leFicheiroItem("items.txt");
-	//mostraItem();
-	printf("\npid backend: %d pid promotor: %d\n", getpid(), pid); 
+	mostraItem();
+
+	printf("\n-----------Informacao do pid do backend e promotores-----------\n");
+	printf("\n>>Pid backend: %d Pid promotor: %d\n", getpid(), pid); 
 	
+	printf("\n-----------Leitura do ficheiro dos utilizadores----------------\n");
+	printf("\n>>Numero de utilizadores: %d\n", loadUsersFile(USER_FILENAME));
 	
-	//-----NOME DO FICHEIRO ERRADO PARA VER O ERRO QUE RETORNA COM A FUNCAO GETLASTERRORTXT!!!
-	printf("numero de utilizadores: %d\n", loadUsersFile("OLA"));
-	
-	
+	printf("\n-----------Verificacao de credenciais do user----------------\n");
 	int b = isUserValid(nome, pass); // 1 se existe 0 se nao existe ou pass errada
-	printf("%d\n", b);
+	printf("\n>>1 - existe ; 0 - nao existe ou pass errada :: %d\n", b);
+	
 	saveUsersFile(USER_FILENAME);
+
+	printf("\n-----------Lista dos users----------------\n");
 	mostrausers();
-	printf("saldo do utilizador/a : %d\n", getUserBalance(nome));
+	printf("\n-----------Teste funcao getUserBalance----------------\n");
+	printf("\n>>Saldo do utilizador/a : %d\n", getUserBalance(nome));
 	updateUserBalance(nome, 10);
+	printf("\n-----------Lista dos users depois de atualizada----------------\n");
 	mostrausers();
 	do
 	{
-		printf("\n\n Deseja testar que funcionalidade?\n");
+		printf("\n\n>>Deseja testar que funcionalidade?\n");
 		fgets(comando, 200, stdin);
 		aux1 = leComandosAdmin(comando);
 
 	} while (aux1 != 0);
 
 	char resposta;
-	printf("\nDeseja lançar um promotor ?(y/n)\n");
+	printf("\n>>Deseja lançar um promotor ?(y/n)\n");
 	scanf("%c", &resposta);
 	union sigval valores;
 	valores.sival_int = -1;
 	if (resposta == 'y')
 	{
-		int i = 0; // tem que aparecer 3 promo antes de  terminar o processo;
-		while (1)
+		 // tem que aparecer 3 promo antes de  terminar o processo;
+		for(int i = 0 ; i<=2 ; i++)
 		{
 			strcpy(outputPromotores, recebePromotor(fd_p2b));
 			printf("\nmsg:%s\n", outputPromotores);
@@ -410,7 +419,6 @@ int main()
 			{
 				sigqueue(pid, SIGUSR1, valores); // fechar promotor
 			}
-			i++;
 		}
 	}
 
