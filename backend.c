@@ -60,7 +60,7 @@ void adicionaItem(char *n, int id, char *ctg, int vb, int cj, int tmp)
 	}
 	else
 	{
-		printf("erro ao alocar memoria\n");
+		printf("ERRO: %s\n", getLastErrorText());
 	}
 }
 
@@ -69,11 +69,12 @@ void leFicheiroItem(char *nomeFich)
 	FILE *f;
 	char Linha[100];
 
-	f = fopen(nomeFich, "rb");
+	f = fopen(nomeFich, "rt");
 
 	if (f == NULL)
 	{
-		printf("ERRO ao abrir ficheiro\n");
+		printf("ERRO: %s\n", getLastErrorText());
+		fclose(f);
 		return;
 	}
 
@@ -173,7 +174,7 @@ int executaPromotor(int fd_p2b[2])
 	int f = fork();
 	if (f == -1)
 	{
-		printf("erro ao criar filho\n");
+		printf("ERRO: %s\n", getLastErrorText());
 	}
 	else if (f == 0)
 	{
@@ -240,7 +241,7 @@ int isUserValid(char *username, char *password)
 	FILE *f;
 	char Linha[100];
 
-	f = fopen(USER_FILENAME, "rb");
+	f = fopen(USER_FILENAME, "rt");
 
 	if (f == NULL)
 	{
