@@ -225,6 +225,17 @@ int loadUsersFile(char *pathname)
 
 int saveUsersFile(char *filename)
 {
+	FILE *f;
+	f=fopen(filename,"wt");
+	if(f==NULL){
+		printf("ERRO: %s\n", getLastErrorText());
+		fclose(f);
+		return -1;
+	}
+	for(int j =0;j<utilizadores_len;j++){
+		fprintf(f,"%s %s %d\n",utilizadores[j].nome,utilizadores[j].password,utilizadores[j].saldo);
+	}
+	fclose();
 	
 }
 int isUserValid(char *username, char *password)
@@ -375,8 +386,6 @@ int main()
 	int b = isUserValid(nome, pass); // 1 se existe 0 se nao existe ou pass errada
 	printf("\n>>(1-existe ; 0-nao existe ou pass errada ):: %d\n", b);
 	
-	saveUsersFile(USER_FILENAME);
-
 	printf("\n-----------Lista dos users----------------\n");
 	mostrausers();
 	printf("\n-----------Teste funcao getUserBalance----------------\n");
