@@ -207,16 +207,18 @@ int loadUsersFile(char *pathname)
 
 	int j = 0;
 	user aux, *new = (user*)malloc(sizeof(user));
-	while(feof(f)==0){
-		if(!new){
+	if(!new){
 			printf("ERRO: %s\n", getLastErrorText());
 			fclose(f);
 			return -1;
 		}
+		printf("passei aqui 1\n");
+	while(feof(f)==0){
 		fgets(buffer,100,f);
 		sscanf(buffer,"%s %s %d",aux.nome,aux.password,&aux.saldo);
 		new = &aux;
 		utilizadores[j]=*new;
+		printf("passei aqui 2\n");
 		++j;
 	}
 	return j;
