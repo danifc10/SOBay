@@ -210,7 +210,7 @@ int loadUsersFile(char *pathname)
 
 	while(feof(f)==0)
 	{
-	
+		user* aux;
 		aux=malloc(sizeof(user));
 		if (!aux)
 		{
