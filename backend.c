@@ -218,6 +218,7 @@ int loadUsersFile(char *pathname)
 		(utilizadores+j)=*new;
 		++j;
 	}
+	utilizadores_len=j;
 	return j;
 }
 
