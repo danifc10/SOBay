@@ -210,7 +210,7 @@ int loadUsersFile(char *pathname)
 	while (feof(f) == 0)
 	{
 		user aux;
-		(utilizadores+j) = malloc(sizeof(user));
+		*(utilizadores+j) = malloc(sizeof(user));
 		if (!(utilizadores+j))
 		{
 			printf("ERRO: %s\n", getLastErrorText());
