@@ -207,10 +207,11 @@ int loadUsersFile(char *pathname)
 	}
 
 	int j =0;
+
 	while(feof(f)==0)
 	{
 	
-		utilizadores[j]=(user *)malloc(sizeof(user));
+		utilizadores[j]=malloc(sizeof(user));
 		if (!utilizadores[j])
 		{
 			printf("ERRO: %s\n", getLastErrorText());
