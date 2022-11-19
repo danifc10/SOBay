@@ -388,6 +388,7 @@ int main()
 	printf("\n>>(1-existe ; 0-nao existe ou pass errada ):: %d\n", b);
 
 	printf("\n-----------Lista dos users----------------\n");
+	mostrausers();
 	printf("\n-----------Teste funcao getUserBalance----------------\n");
 	printf("\n>>Saldo do utilizador/a %s : %d\n", nome, getUserBalance(nome));
 	updateUserBalance(nome, 10);
