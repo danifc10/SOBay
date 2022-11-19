@@ -397,7 +397,7 @@ int main()
 	mostrausers();
 	do
 	{
-		printf("\n\n>>Deseja testar que funcionalidade?\n");
+		printf("\n\n>>Deseja testar que comando?\n");
 		fgets(comando, 200, stdin);
 		aux1 = leComandosAdmin(comando);
 
