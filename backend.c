@@ -209,7 +209,7 @@ int loadUsersFile(char *pathname)
 	while(feof(f)==0){++j;}
 	utilizadores_len=j;
 	fclose(f);
-	FILE *f1
+	FILE *f1;
 	f1=fopen(pathname,"rt");
 	if (f1 == NULL){
 		printf("ERRO: %s\n", getLastErrorText());
