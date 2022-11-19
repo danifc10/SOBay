@@ -215,7 +215,7 @@ int loadUsersFile(char *pathname)
 		fclose(f);
 		return -1;
 	}
-	utilizadores=malloc(utilizadores_len,sizeof(user));
+	utilizadores=malloc(utilizadores_len * sizeof(user));
 	if(!utilizadores){	
 		printf("ERRO: %s\n", getLastErrorText());
 		fclose(f);
