@@ -128,9 +128,9 @@ int main(int argc , char *argv[])
 	if (argc == 3)
 	{
 		char comando[20];
-		printf("Bem vindo!\n");
+		printf("Bem vindo %s!\n", argv[1]);
 		do{
-			printf("\n>>Deseja testar que funcionalidade?");
+			printf("\n>>Deseja testar que comando?");
 			fgets(comando, 200, stdin);
 			aux = leComandosCliente(comando);
 		}while(aux != 0);
