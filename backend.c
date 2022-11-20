@@ -206,14 +206,18 @@ int loadUsersFile(char *pathname)
 		return -1;
 	}
 	int j = 0;
-	while(fgets(buffer, 100,f)){j++;}
+	while (fgets(buffer, 100, f))
+	{
+		j++;
+	}
 	fclose(f);
 	FILE *f1;
-	f1=fopen(pathname,"rt");
-	utilizadores=(user *) malloc(j*sizeof(user));
-	int k=0;
-	while(fgets(buffer,100,f1)){
-		sscanf(buffer,"%s %s %d",utilizadores[k].nome,utilizadores[k].password,&utilizadores[k].saldo);
+	f1 = fopen(pathname, "rt");
+	utilizadores = (user *)malloc(j * sizeof(user));
+	int k = 0;
+	while (fgets(buffer, 100, f1))
+	{
+		sscanf(buffer, "%s %s %d", utilizadores[k].nome, utilizadores[k].password, &utilizadores[k].saldo);
 		k++;
 	}
 	fclose(f1);
@@ -343,8 +347,6 @@ int main()
 		pid_promotor[i] = 0;
 	}
 
-	char comando[20];
-	int aux = 0;
 	// criar 2 unnamed pipes
 	int fd_p2b[2];
 	// pipes
@@ -367,11 +369,122 @@ int main()
 		}
 	}
 
-	// --------------variaveis para teste------------
+	int opcao;
+	char comando[20];
+	int aux = 0;
+	printf("\n>>Deseja testar que funcionalidade?\n");
+	printf("1. Inserir Comando\n2. Executar promotor\n3. Utilizadores\n4. Ver items\n5. Voltar\n");
+	scanf("%d", &opcao);
 
-	char *nome = "daniela";
-	char *pass = "ola";
-	int aux1;
+	switch (opcao)
+	{
+	case 1:
+		do
+		{
+			printf("\n\n>>Deseja testar que comando?\n");
+			fgets(comando, 200, stdin);
+			aux = leComandosAdmin(comando);
+
+		} while (aux != 0);
+		break;
+	case 2:
+		union sigval valores;
+		valores.sival_int = -1;
+
+		// tem que aparecer 3 promo antes de  terminar o processo;
+		for (int i = 0; i <= 2; i++)
+		{
+			strcpy(outputPromotores, recebePromotor(fd_p2b));
+			printf("\nmsg:%s\n", outputPromotores);
+			if (i == 2)
+			{
+				sigqueue(pid, SIGUSR1, valores); // fechar promotor
+			}
+		}
+		break;
+
+	case 3:
+		loadUsersFile(USER_FILENAME);
+		int opcaoUser;
+		char *nome;
+		char *password;
+		int saldo;
+		printf("--1. Ver utilizadores\n--2.Atualizar saldo\n--3.Verificar user\n--4.Obter saldo\n5. Voltar");
+		do
+		{
+
+			scanf(">>%d", &opcaoUser);
+			if (opcaoUser == 1)
+			{
+				mostrausers();
+			}
+			else if (opcaoUser == 2)
+			{
+
+				printf("Insira um username:");
+				scanf("%s", &nome);
+				printf("Novo saldo:");
+				scanf("%d", &saldo);
+
+				if (updateUserBalance(nome, saldo) == -1)
+				{
+					getLastErrorText(errno);
+					printf("\nErro ao atualizar saldo!");
+				}
+				else
+				{
+					printf("\nSaldo atualizado com sucesso!");
+				}
+				break;
+			}
+			else if (opcaoUser == 3)
+			{
+				pritnf("Username:");
+				gets(nome);
+				printf("\nPassword:");
+				gets(password);
+
+				if (isUserValid(nome, password) == -1 || isUserValid(nome, password) == 0)
+				{
+					printf("\nErro ao validar user, user nao existe ou password incorreta!\n");
+				}
+				else if (isUserValid(nome, password) == 0)
+				{
+					printf("\nUser valido!\n");
+				}
+				break;
+			}
+			else if (opcaoUser == 4)
+			{
+				printf("Username:");
+				gets(nome);
+				saldo = getUserBalance(nome);
+				if (saldo == -1)
+				{
+					getLastErrorText(errno);
+					return;
+				}
+				else
+				{
+					printf("\nSaldo: %d", saldo);
+				}
+			}
+			saveUsersFile(USER_FILENAME);
+		} while (opcaoUser != 5);
+		free(utilizadores);
+		break;
+	case 4:
+		mostraItem();
+		break;
+	case 5:
+		exit(1);
+		break;
+
+	default:
+		break;
+	}
+
+	/*char *pass = "ola";
 
 	printf("\n-----------Informacao do pid do backend e promotores-----------\n");
 	printf("\n>>Pid backend: %d Pid promotor: %d\n", getpid(), pid);
@@ -396,33 +509,7 @@ int main()
 	printf("\n-----------Lista dos users depois de atualizada----------------\n");
 	mostrausers();
 	saveUsersFile(USER_FILENAME);
-	free(utilizadores);
-	do
-	{
-		printf("\n\n>>Deseja testar que comando?\n");
-		fgets(comando, 200, stdin);
-		aux1 = leComandosAdmin(comando);
-
-	} while (aux1 != 0);
-
-	char resposta;
-	printf("\n>>Deseja lançar um promotor ?(y/n)\n");
-	scanf("%c", &resposta);
-	union sigval valores;
-	valores.sival_int = -1;
-	if (resposta == 'y')
-	{
-		// tem que aparecer 3 promo antes de  terminar o processo;
-		for (int i = 0; i <= 2; i++)
-		{
-			strcpy(outputPromotores, recebePromotor(fd_p2b));
-			printf("\nmsg:%s\n", outputPromotores);
-			if (i == 2)
-			{
-				sigqueue(pid, SIGUSR1, valores); // fechar promotor
-			}
-		}
-	}
-
+	
+*/
 	return 0;
 }
