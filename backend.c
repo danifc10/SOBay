@@ -358,6 +358,7 @@ int main()
 		exit(1);
 	}
 	int opcao;
+	int pid;
 	char comando[20];
 	int aux = 0;
 	do
@@ -380,7 +381,7 @@ int main()
 			} while (aux != 0);
 			break;
 		case 2:
-		int pid = executaPromotor(fd_p2b);
+		pid = executaPromotor(fd_p2b);
 		for (int i = 0; i < 10; i++)
 		{
 			if (pid_promotor[i] == 0)
