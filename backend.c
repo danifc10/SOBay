@@ -362,6 +362,7 @@ int main()
 	union sigval valores;
 	char comando[20];
 	int aux = 0;
+	printf("ola");
 	do
 	{
 
@@ -391,6 +392,7 @@ int main()
 				break;
 			}
 		}
+		
 			valores.sival_int = 1;
 
 			// tem que aparecer 3 promo antes de  terminar o processo;
