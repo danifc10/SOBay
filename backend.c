@@ -367,7 +367,7 @@ int main()
 			}
 		}
 	int opcao;
-	
+	union sigval valores;
 	char comando[20];
 	int aux = 0;
 	do
@@ -390,7 +390,6 @@ int main()
 			} while (aux != 0);
 			break;
 		case 2:
-			union sigval valores;
 			valores.sival_int = -1;
 
 			// tem que aparecer 3 promo antes de  terminar o processo;
