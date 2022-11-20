@@ -391,7 +391,7 @@ int main()
 				break;
 			}
 		}
-			valores.sival_int = 1;
+			valores.sival_int = -1;
 
 			// tem que aparecer 3 promo antes de  terminar o processo;
 			for (int i = 0; i <= 2; i++)
