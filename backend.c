@@ -370,6 +370,7 @@ int main()
 	}
 
 	int opcao;
+	union sigval valores;
 	char comando[20];
 	int aux = 0;
 	printf("\n>>Deseja testar que funcionalidade?\n");
@@ -379,6 +380,7 @@ int main()
 	switch (opcao)
 	{
 	case 1:
+		fflush(stdin);
 		do
 		{
 			printf("\n\n>>Deseja testar que comando?\n");
@@ -388,7 +390,7 @@ int main()
 		} while (aux != 0);
 		break;
 	case 2:
-		union sigval valores;
+		
 		valores.sival_int = -1;
 
 		// tem que aparecer 3 promo antes de  terminar o processo;
@@ -409,13 +411,14 @@ int main()
 		char *nome;
 		char *password;
 		int saldo;
-		printf("--1. Ver utilizadores\n--2.Atualizar saldo\n--3.Verificar user\n--4.Obter saldo\n5. Voltar");
+		printf("--1. Ver utilizadores\n--2.Atualizar saldo\n--3.Verificar user\n--4.Obter saldo\n--5. Voltar\n");
 		do
 		{
 
-			scanf(">>%d", &opcaoUser);
+			scanf("%d", &opcaoUser);
 			if (opcaoUser == 1)
 			{
+				printf("ola");
 				mostrausers();
 			}
 			else if (opcaoUser == 2)
@@ -429,7 +432,6 @@ int main()
 				if (updateUserBalance(nome, saldo) == -1)
 				{
 					getLastErrorText(errno);
-					printf("\nErro ao atualizar saldo!");
 				}
 				else
 				{
@@ -439,13 +441,14 @@ int main()
 			}
 			else if (opcaoUser == 3)
 			{
-				pritnf("Username:");
-				gets(nome);
+				printf("Username:");
+				scanf("%s", &nome);
 				printf("\nPassword:");
-				gets(password);
+				scanf("%s", &password);
 
 				if (isUserValid(nome, password) == -1 || isUserValid(nome, password) == 0)
 				{
+					getLastErrorText(errno);
 					printf("\nErro ao validar user, user nao existe ou password incorreta!\n");
 				}
 				else if (isUserValid(nome, password) == 0)
@@ -457,12 +460,12 @@ int main()
 			else if (opcaoUser == 4)
 			{
 				printf("Username:");
-				gets(nome);
+				scanf("%s", &nome);
 				saldo = getUserBalance(nome);
 				if (saldo == -1)
 				{
 					getLastErrorText(errno);
-					return;
+
 				}
 				else
 				{
@@ -474,6 +477,7 @@ int main()
 		free(utilizadores);
 		break;
 	case 4:
+		leFicheiroItem(FITEM);
 		mostraItem();
 		break;
 	case 5:
