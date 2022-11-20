@@ -373,147 +373,127 @@ int main()
 	union sigval valores;
 	char comando[20];
 	int aux = 0;
-	printf("\n>>Deseja testar que funcionalidade?\n");
-	printf("1. Inserir Comando\n2. Executar promotor\n3. Utilizadores\n4. Ver items\n5. Voltar\n");
-	scanf("%d", &opcao);
-
-	switch (opcao)
+	do
 	{
-	case 1:
-		fflush(stdin);
-		do
-		{
-			printf("\n\n>>Deseja testar que comando?\n");
-			fgets(comando, 200, stdin);
-			aux = leComandosAdmin(comando);
 
-		} while (aux != 0);
-		break;
-	case 2:
-		
-		valores.sival_int = -1;
+		printf("\n-------------Deseja testar que funcionalidade?-----------\n");
+		printf("\n1. Inserir Comando\n2. Executar promotor\n3. Utilizadores\n4. Ver items\n5. Sair\n>>");
+		scanf("%d", &opcao);
+		getchar();
 
-		// tem que aparecer 3 promo antes de  terminar o processo;
-		for (int i = 0; i <= 2; i++)
+		switch (opcao)
 		{
-			strcpy(outputPromotores, recebePromotor(fd_p2b));
-			printf("\nmsg:%s\n", outputPromotores);
-			if (i == 2)
+		case 1:
+			do
 			{
-				sigqueue(pid, SIGUSR1, valores); // fechar promotor
+				printf("\n\n>>Deseja testar que comando?\n");
+				fgets(comando, 200, stdin);
+				aux = leComandosAdmin(comando);
+
+			} while (aux != 0);
+			break;
+		case 2:
+
+			valores.sival_int = -1;
+
+			// tem que aparecer 3 promo antes de  terminar o processo;
+			for (int i = 0; i <= 2; i++)
+			{
+				strcpy(outputPromotores, recebePromotor(fd_p2b));
+				printf("\nmsg:%s\n", outputPromotores);
+				if (i == 2)
+				{
+					sigqueue(pid, SIGUSR1, valores); // fechar promotor
+				}
 			}
+			break;
+
+		case 3:
+			utilizadores_len = loadUsersFile(USER_FILENAME);
+			int opcaoUser;
+			char nome[100];
+			char password[100];
+			int saldo;
+
+			do
+			{
+				printf("\n-----Utilizadores-----\n");
+				printf("--1. Ver utilizadores\n--2.Atualizar saldo\n--3.Verificar user\n--4.Obter saldo\n--5. Voltar\n");
+				printf("\n\n>>");
+				scanf("%d", &opcaoUser);
+				getchar();
+				if (opcaoUser == 1)
+				{
+					mostrausers();
+				}
+				else if (opcaoUser == 2)
+				{
+
+					printf("\nInsira um username:");
+					scanf("%s", &nome);
+					printf("\nNovo saldo:");
+					scanf("%d", &saldo);
+
+					if (updateUserBalance(nome, saldo) == -1)
+					{
+						getLastErrorText(errno);
+					}
+					else
+					{
+						printf("\nSaldo atualizado com sucesso!\n");
+					}
+				}
+				else if (opcaoUser == 3)
+				{
+					printf("\nUsername:");
+					scanf("%s", &nome);
+					printf("\nPassword:");
+					scanf("%s", &password);
+
+					if (isUserValid(nome, password) == -1)
+					{
+						getLastErrorText(errno);
+					}
+					else if (isUserValid(nome, password) == 1)
+					{
+						printf("\nUser valido!\n");
+					}
+					else if (isUserValid(nome, password) == 0)
+					{
+						printf("\nPassword errada ou user nao existe!\n");
+					}
+				}
+				else if (opcaoUser == 4)
+				{
+					printf("\nUsername:");
+					scanf("%s", &nome);
+					saldo = getUserBalance(nome);
+					if (saldo == -1)
+					{
+						getLastErrorText(errno);
+					}
+					else
+					{
+						printf("\nSaldo: %d\n", saldo);
+					}
+				}
+				saveUsersFile(USER_FILENAME);
+			} while (opcaoUser != 5);
+			free(utilizadores);
+			break;
+		case 4:
+			leFicheiroItem(FITEM);
+			mostraItem();
+			break;
+		case 5:
+			exit(1);
+			break;
+
+		default:
+			break;
 		}
-		break;
 
-	case 3:
-		loadUsersFile(USER_FILENAME);
-		int opcaoUser;
-		char *nome;
-		char *password;
-		int saldo;
-		printf("--1. Ver utilizadores\n--2.Atualizar saldo\n--3.Verificar user\n--4.Obter saldo\n--5. Voltar\n");
-		do
-		{
-
-			scanf("%d", &opcaoUser);
-			if (opcaoUser == 1)
-			{
-				printf("ola");
-				mostrausers();
-			}
-			else if (opcaoUser == 2)
-			{
-
-				printf("Insira um username:");
-				scanf("%s", &nome);
-				printf("Novo saldo:");
-				scanf("%d", &saldo);
-
-				if (updateUserBalance(nome, saldo) == -1)
-				{
-					getLastErrorText(errno);
-				}
-				else
-				{
-					printf("\nSaldo atualizado com sucesso!");
-				}
-				break;
-			}
-			else if (opcaoUser == 3)
-			{
-				printf("Username:");
-				scanf("%s", &nome);
-				printf("\nPassword:");
-				scanf("%s", &password);
-
-				if (isUserValid(nome, password) == -1 || isUserValid(nome, password) == 0)
-				{
-					getLastErrorText(errno);
-					printf("\nErro ao validar user, user nao existe ou password incorreta!\n");
-				}
-				else if (isUserValid(nome, password) == 0)
-				{
-					printf("\nUser valido!\n");
-				}
-				break;
-			}
-			else if (opcaoUser == 4)
-			{
-				printf("Username:");
-				scanf("%s", &nome);
-				saldo = getUserBalance(nome);
-				if (saldo == -1)
-				{
-					getLastErrorText(errno);
-
-				}
-				else
-				{
-					printf("\nSaldo: %d", saldo);
-				}
-			}
-			saveUsersFile(USER_FILENAME);
-		} while (opcaoUser != 5);
-		free(utilizadores);
-		break;
-	case 4:
-		leFicheiroItem(FITEM);
-		mostraItem();
-		break;
-	case 5:
-		exit(1);
-		break;
-
-	default:
-		break;
-	}
-
-	/*char *pass = "ola";
-
-	printf("\n-----------Informacao do pid do backend e promotores-----------\n");
-	printf("\n>>Pid backend: %d Pid promotor: %d\n", getpid(), pid);
-
-	printf("\n-----------Leitura do ficheiro dos items--------------------\n");
-	leFicheiroItem(FITEM);
-	mostraItem();
-
-	printf("\n-----------Leitura do ficheiro dos utilizadores----------------\n");
-	utilizadores_len = loadUsersFile(USER_FILENAME);
-	printf("\n>>Numero de utilizadores: %d\n", utilizadores_len);
-
-	printf("\n-----------Verificacao de credenciais do user----------------\n");
-	int b = isUserValid(nome, pass); // 1 se existe 0 se nao existe ou pass errada
-	printf("\n>>(1-existe ; 0-nao existe ou pass errada ):: %d\n", b);
-
-	printf("\n-----------Lista dos users----------------\n");
-	mostrausers();
-	printf("\n-----------Teste funcao getUserBalance----------------\n");
-	printf("\n>>Saldo do utilizador/a %s : %d\n", nome, getUserBalance(nome));
-	updateUserBalance(nome, 10);
-	printf("\n-----------Lista dos users depois de atualizada----------------\n");
-	mostrausers();
-	saveUsersFile(USER_FILENAME);
+	} while (opcao != 5);
 	
-*/
 	return 0;
 }

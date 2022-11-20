@@ -1,4 +1,2 @@
 daniela ola 0
-maria ola 0
-joao abc 0
-tiago 123 0
+tiago adeus 4
