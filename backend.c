@@ -357,15 +357,7 @@ int main()
 		printf("erro ao criar pipe\n");
 		exit(1);
 	}
-	int pid = executaPromotor(fd_p2b);
-		for (int i = 0; i < 10; i++)
-		{
-			if (pid_promotor[i] == 0)
-			{
-				pid_promotor[i] = pid;
-				break;
-			}
-		}
+	int pid ;
 	int opcao;
 	union sigval valores;
 	char comando[20];
@@ -390,6 +382,15 @@ int main()
 			} while (aux != 0);
 			break;
 		case 2:
+		pid = executaPromotor(fd_p2b);
+		for (int i = 0; i < 10; i++)
+		{
+			if (pid_promotor[i] == 0)
+			{
+				pid_promotor[i] = pid;
+				break;
+			}
+		}
 			valores.sival_int = -1;
 
 			// tem que aparecer 3 promo antes de  terminar o processo;
