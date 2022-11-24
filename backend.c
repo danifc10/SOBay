@@ -13,7 +13,7 @@
 #include "users_lib.h"
 #include <errno.h>
 #define FPROMOTORES "ficheiro_promotores.txt"
-#define SERVER_FIFO "SERVIDOR"
+#define BACKEND_FIFO "BACKEND"
 #define CLIENT_FIFO "CLIENTE%d"
 char CLIENT_FIFO_FINAL[100];
 
@@ -224,7 +224,7 @@ typedef struct
 
 void handler_sigalrm(int signal, siginfo_t *info, void *extra)
 {
-	unlink(SERVER_FIFO);
+	unlink(BACKEND_FIFO);
 	printf("adeus");
 	exit(1);
 }
@@ -238,7 +238,7 @@ int main()
 	sa.sa_sigaction = handler_sigalrm;
 	sigaction(SIGINT, &sa, NULL);
 
-	if (mkfifo(SERVER_FIFO, 0666) == -1)
+	if (mkfifo(BACKEND_FIFO, 0666) == -1)
 	{
 
 		if (errno == EEXIST)
@@ -248,7 +248,7 @@ int main()
 		printf("erro ao abrir fifo\n");
 		return 1;
 	}
-	int fdRecebe = open(SERVER_FIFO, O_RDONLY);
+	int fdRecebe = open(BACKEND_FIFO, O_RDONLY);
 	if (fdRecebe == -1)
 	{
 		printf("erro ao abrir o servidor");
@@ -274,7 +274,7 @@ int main()
 		int size2 = write(fdEnvio, &resposta, sizeof(resposta));
 		close(fdEnvio);
 	}
-	unlink(SERVER_FIFO);
+	unlink(BACKEND_FIFO);
 	//--------------------------------------------
 
 

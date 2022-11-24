@@ -11,7 +11,7 @@
 #include <sys/stat.h>
 #include "user.h"
 #include "item.h"
-#define SERVER_FIFO "SERVIDOR"
+#define BACKEND_FIFO "BACKEND"
 #define CLIENT_FIFO "CLIENTE%d"
 char CLIENT_FIFO_FINAL[100];
 
@@ -170,7 +170,7 @@ int main(int argc, char *argv[])
 
 		strcpy(mensagem.nome, argv[1]);
 		strcpy(mensagem.pass, argv[2]);
-		fd_envio = open(SERVER_FIFO, O_WRONLY);
+		fd_envio = open(BACKEND_FIFO, O_WRONLY);
 		int size = write(fd_envio, &mensagem, sizeof(mensagem));
 		close(fd_envio);
 		fd_resposta = open(CLIENT_FIFO_FINAL, O_RDONLY);
