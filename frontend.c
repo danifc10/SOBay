@@ -138,7 +138,7 @@ int main(int argc , char *argv[])
 	}
 	else
 	{
-		printf("Falta de argumentos\n");
+		printf("Erro em numero de argumentos\n");
 	}
 	
 

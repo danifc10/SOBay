@@ -1,1 +1,2 @@
-carros 20 30
+promotor_oficial
+black_friday

@@ -10,10 +10,12 @@
 #include <time.h>
 #include "users_lib.h"
 #include <errno.h>
+#define FPROMOTORES "ficheiro_promotores.txt"
 
 item *i;
 user *utilizadores;
 int utilizadores_len;
+
 void mostraItem()
 {
 	while (i)
@@ -182,6 +184,7 @@ int executaPromotor(int fd_p2b[2])
 		dup(fd_p2b[1]);
 		close(fd_p2b[0]);
 		close(fd_p2b[1]);
+		
 		execl("./promotor_oficial", "promotor_oficial", NULL);
 	}
 	return f;
@@ -194,148 +197,14 @@ char *recebePromotor(int fd_p2b[2])
 	return strtok(msg, "\n");
 }
 
-int loadUsersFile(char *pathname)
-{
-	char buffer[100];
-	FILE *f;
-	f = fopen(pathname, "rt");
-	if (f == NULL)
-	{
-		printf("ERRO: %s\n", getLastErrorText());
-		fclose(f);
-		return -1;
-	}
-	int j = 0;
-	while (fgets(buffer, 100, f))
-	{
-		j++;
-	}
-	fclose(f);
-	FILE *f1;
-	f1 = fopen(pathname, "rt");
-	utilizadores = (user *)malloc(j * sizeof(user));
-	int k = 0;
-	while (fgets(buffer, 100, f1))
-	{
-		sscanf(buffer, "%s %s %d", utilizadores[k].nome, utilizadores[k].password, &utilizadores[k].saldo);
-		k++;
-	}
-	fclose(f1);
-	return j;
-}
-
-int saveUsersFile(char *filename)
-{
-	FILE *f;
-	f = fopen(filename, "wt");
-	if (f == NULL)
-	{
-		printf("ERRO: %s\n", getLastErrorText());
-		fclose(f);
-		return -1;
-	}
-	for (int j = 0; j < utilizadores_len; j++)
-	{
-		fprintf(f, "%s %s %d\n", utilizadores[j].nome, utilizadores[j].password, utilizadores[j].saldo);
-	}
-	fclose(f);
-}
-int isUserValid(char *username, char *password)
-{
-	FILE *f;
-	char Linha[100];
-
-	f = fopen(USER_FILENAME, "rt");
-
-	if (f == NULL)
-	{
-		printf("\nERRO:	 %s", getLastErrorText());
-		return -1;
-	}
-	int i = 0;
-	int aux = 0;
-	while (fgets(Linha, 100, f))
-	{
-		char user[100], pass[100];
-		int saldo;
-
-		sscanf(Linha, "%s %s %d", user, pass, &saldo);
-
-		if (strcmp(username, user) == 0)
-		{
-			aux++;
-			if (strcmp(pass, password) == 0)
-			{
-				aux++;
-			}
-		}
-	}
-
-	fclose(f);
-
-	if (aux == 2)
-	{
-		return 1;
-	}
-	else
-	{
-		return 0;
-	}
-}
-int getUserBalance(char *username)
-{
-	int j;
-	for (j = 0; strcmp(utilizadores[j].nome, username) != 0; j++)
-	{
-		if (j == utilizadores_len)
-		{
-			break;
-		}
-	}
-	if (strcmp(utilizadores[j].nome, username) == 0)
-	{
-		if (utilizadores[j].saldo > 0)
-		{
-			utilizadores[j].saldo = utilizadores[j].saldo - 1;
-		}
-		return utilizadores[j].saldo;
-	}
-	return -1;
-}
-int updateUserBalance(char *username, int value)
-{
-	int j;
-	for (j = 0; strcmp(utilizadores[j].nome, username) != 0; j++)
-	{
-		if (j == utilizadores_len)
-		{
-			break;
-		}
-	}
-	if (strcmp(utilizadores[j].nome, username) == 0)
-	{
-		if (utilizadores[j].saldo > 0)
-		{
-			utilizadores[j].saldo = utilizadores[j].saldo - 1;
-		}
-		utilizadores[j].saldo = value;
-		return 0;
-	}
-	return -1;
-}
 void mostrausers()
 {
-
 	for (int j = 0; j < utilizadores_len; j++)
 	{
 		printf("nome: %s pass: %s saldo: %d \n", utilizadores[j].nome, utilizadores[j].password, utilizadores[j].saldo);
 	}
 }
-const char *getLastErrorText()
-{
-	return strerror(errno);
-	;
-}
+
 int main()
 {
 	char outputPromotores[100];
@@ -357,12 +226,12 @@ int main()
 		printf("erro ao criar pipe\n");
 		exit(1);
 	}
-	int pid ;
+	int pid;
 	int opcao;
 	union sigval valores;
 	char comando[20];
 	int aux = 0;
-	
+
 	do
 	{
 
@@ -383,16 +252,16 @@ int main()
 			} while (aux != 0);
 			break;
 		case 2:
-		pid = executaPromotor(fd_p2b);
-		for (int i = 0; i < 10; i++)
-		{
-			if (pid_promotor[i] == 0)
+			pid = executaPromotor(fd_p2b);
+			for (int i = 0; i < 10; i++)
 			{
-				pid_promotor[i] = pid;
-				break;
+				if (pid_promotor[i] == 0)
+				{
+					pid_promotor[i] = pid;
+					break;
+				}
 			}
-		}
-		
+
 			valores.sival_int = 1;
 
 			// tem que aparecer 3 promo antes de  terminar o processo;
@@ -408,24 +277,21 @@ int main()
 			break;
 
 		case 3:
-			utilizadores_len = loadUsersFile(USER_FILENAME);
-			int opcaoUser;
-			char nome[100];
-			char password[100];
-			int saldo;
-
+		 	utilizadores_len = loadUsersFile(USER_FILENAME);
+			int opcaoUser = 0;
 			do
 			{
+				
+				char nome[100];
+				char password[100];
+				int saldo;
 				printf("\n-----Utilizadores-----\n");
-				printf("--1. Ver utilizadores\n--2.Atualizar saldo\n--3.Verificar user\n--4.Obter saldo\n--5. Voltar\n");
+				printf("--1.Atualizar saldo\n--2.Verificar user\n--3.Obter saldo\n--4. Voltar\n");
 				printf("\n\n>>");
 				scanf("%d", &opcaoUser);
 				getchar();
+
 				if (opcaoUser == 1)
-				{
-					mostrausers();
-				}
-				else if (opcaoUser == 2)
 				{
 
 					printf("\nInsira um username:");
@@ -435,14 +301,14 @@ int main()
 
 					if (updateUserBalance(nome, saldo) == -1)
 					{
-						getLastErrorText(errno);
+						getLastErrorText();
 					}
 					else
 					{
 						printf("\nSaldo atualizado com sucesso!\n");
 					}
 				}
-				else if (opcaoUser == 3)
+				else if (opcaoUser == 2)
 				{
 					printf("\nUsername:");
 					scanf("%s", &nome);
@@ -451,7 +317,7 @@ int main()
 
 					if (isUserValid(nome, password) == -1)
 					{
-						getLastErrorText(errno);
+						getLastErrorText();
 					}
 					else if (isUserValid(nome, password) == 1)
 					{
@@ -462,14 +328,14 @@ int main()
 						printf("\nPassword errada ou user nao existe!\n");
 					}
 				}
-				else if (opcaoUser == 4)
+				else if (opcaoUser == 3)
 				{
 					printf("\nUsername:");
 					scanf("%s", &nome);
 					saldo = getUserBalance(nome);
 					if (saldo == -1)
 					{
-						getLastErrorText(errno);
+						getLastErrorText();
 					}
 					else
 					{
@@ -477,7 +343,7 @@ int main()
 					}
 				}
 				saveUsersFile(USER_FILENAME);
-			} while (opcaoUser != 5);
+			} while (opcaoUser != 4);
 			free(utilizadores);
 			break;
 		case 4:
@@ -493,6 +359,6 @@ int main()
 		}
 
 	} while (opcao != 5);
-	
+
 	return 0;
 }

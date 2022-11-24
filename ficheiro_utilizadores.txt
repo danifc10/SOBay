@@ -1,2 +1,4 @@
-daniela ola 0
-tiago adeus 4
+a b 18
+daniela ola 3
+tiago adeus 3
+
