@@ -231,6 +231,7 @@ int main()
 	union sigval valores;
 	char comando[20];
 	int aux = 0;
+	int estado;
 	
 	do
 	{
