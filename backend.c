@@ -1,16 +1,21 @@
 #include <stdio.h>
-#include <ctype.h>
-#include "item.h"
-#include "user.h"
 #include <stdlib.h>
-#include <stdio.h>
-#include <unistd.h>
 #include <string.h>
-#include <sys/wait.h>
-#include <time.h>
+#include <ctype.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <signal.h>
+#include <sys/stat.h>
+#include "user.h"
+#include "item.h"
 #include "users_lib.h"
 #include <errno.h>
 #define FPROMOTORES "ficheiro_promotores.txt"
+#define SERVER_FIFO "SERVIDOR"
+#define CLIENT_FIFO "CLIENTE%d"
+char CLIENT_FIFO_FINAL[100];
 
 item *i;
 user *utilizadores;
@@ -205,8 +210,75 @@ void mostrausers()
 	}
 }
 
+typedef struct
+{
+	pid_t pid;
+	char nome[100];
+	char pass[100];
+} dataMsg;
+
+typedef struct
+{
+	int res;
+} dataRPL;
+
+void handler_sigalrm(int signal, siginfo_t *info, void *extra)
+{
+	unlink(SERVER_FIFO);
+	printf("adeus");
+	exit(1);
+}
+
 int main()
 {
+	//--------- RECEBE CENAS DO FRONTEND AQUI ----------------
+	dataMsg mensagemRecebida;
+	dataRPL resposta;
+	struct sigaction sa;
+	sa.sa_sigaction = handler_sigalrm;
+	sigaction(SIGINT, &sa, NULL);
+
+	if (mkfifo(SERVER_FIFO, 0666) == -1)
+	{
+
+		if (errno == EEXIST)
+		{
+			printf("\nfifo ja existe\n");
+		}
+		printf("erro ao abrir fifo\n");
+		return 1;
+	}
+	int fdRecebe = open(SERVER_FIFO, O_RDONLY);
+	if (fdRecebe == -1)
+	{
+		printf("erro ao abrir o servidor");
+		return 1;
+	}
+
+	int size = read(fdRecebe, &mensagemRecebida, sizeof(mensagemRecebida));
+	if (size > 0)
+	{
+		utilizadores_len = loadUsersFile(USER_FILENAME);
+		int aux = isUserValid(mensagemRecebida.nome, mensagemRecebida.pass);
+		if (aux == 1)
+		{
+			resposta.res = 1;
+		}
+		else
+		{
+			resposta.res = 0;
+			
+		}
+		sprintf(CLIENT_FIFO_FINAL, CLIENT_FIFO, mensagemRecebida.pid);
+		int fdEnvio = open(CLIENT_FIFO_FINAL, O_WRONLY);
+		int size2 = write(fdEnvio, &resposta, sizeof(resposta));
+		close(fdEnvio);
+	}
+	unlink(SERVER_FIFO);
+	//--------------------------------------------
+
+
+
 	char outputPromotores[100];
 	// maximo de promotores
 	int pid_promotor[10];
@@ -275,8 +347,8 @@ int main()
 					sigqueue(pid, SIGUSR1, valores); // fechar promotor
 				}
 			}
-			wait(&estado);
-			printf("%d\n",estado);
+			//wait(&estado);
+			//printf("%d\n",estado);
 			break;
 
 		case 3:

@@ -3,8 +3,17 @@
 #include <string.h>
 #include <ctype.h>
 #include <unistd.h>
+#include <fcntl.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <signal.h>
+#include <errno.h>
+#include <sys/stat.h>
 #include "user.h"
 #include "item.h"
+#define SERVER_FIFO "SERVIDOR"
+#define CLIENT_FIFO "CLIENTE%d"
+char CLIENT_FIFO_FINAL[100];
 
 int leComandosCliente(char *comando)
 {
@@ -58,7 +67,7 @@ int leComandosCliente(char *comando)
 		}
 		else
 			printf("Comando invalido\n");
-			return 1;
+		return 1;
 		break;
 
 	case 1:
@@ -86,7 +95,7 @@ int leComandosCliente(char *comando)
 		}
 		else
 			printf("Comando invalido\n");
-			return 1;
+		return 1;
 		break;
 
 	case 2:
@@ -100,7 +109,7 @@ int leComandosCliente(char *comando)
 		}
 		else
 			printf("Comando invalido\n");
-			return 1;
+		return 1;
 		break;
 
 	case 5:
@@ -122,25 +131,74 @@ int leComandosCliente(char *comando)
 	}
 }
 
-int main(int argc , char *argv[])
+typedef struct
+{
+	pid_t pid;
+	char nome[100];
+	char pass[100];
+} dataMsg;
+
+typedef struct
+{
+	int res;
+} dataRPL;
+
+int main(int argc, char *argv[])
 {
 	int aux;
+
 	if (argc == 3)
 	{
-		char comando[20];
-		printf("Bem vindo %s!\n", argv[1]);
-		do{
-			printf("\n>>Deseja testar que comando?");
-			fgets(comando, 200, stdin);
-			aux = leComandosCliente(comando);
-		}while(aux != 0);
+		printf("ola");
+		dataMsg mensagem;
+		dataRPL resposta;
+		mensagem.pid = getpid();
+		int fd_envio, fd_resposta;
+
+		sprintf(CLIENT_FIFO_FINAL, CLIENT_FIFO, getpid());
+
+		if (mkfifo(CLIENT_FIFO_FINAL, 0666) == -1)
+		{
+
+			if (errno == EEXIST)
+			{
+				printf("\nfifo ja existe\n");
+			}
+			printf("erro ao abrir fifo\n");
+			return 1;
+		}
+
+		strcpy(mensagem.nome, argv[1]);
+		strcpy(mensagem.pass, argv[2]);
+		fd_envio = open(SERVER_FIFO, O_WRONLY);
+		int size = write(fd_envio, &mensagem, sizeof(mensagem));
+		close(fd_envio);
+		fd_resposta = open(CLIENT_FIFO_FINAL, O_RDONLY);
+		if (fd_resposta == -1)
+		{
+			printf("erro ao abrir fifo do clinte");
+		}
+		int siz2 = read(fd_resposta, &resposta, sizeof(resposta));
+		close(fd_resposta);
 		
+		if (resposta.res == 1)
+		{
+			char comando[20];
+			printf("Bem vindo %s!\n", argv[1]);
+			do
+			{
+				printf("\n>>Deseja testar que comando?");
+				fgets(comando, 200, stdin);
+				aux = leComandosCliente(comando);
+			} while (aux != 0);
+		}else{
+			printf("permissao recusada");
+		}
 	}
 	else
 	{
 		printf("Erro em numero de argumentos\n");
 	}
-	
 
 	return 0;
 }
