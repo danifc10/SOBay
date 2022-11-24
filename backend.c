@@ -362,7 +362,7 @@ int main()
 	union sigval valores;
 	char comando[20];
 	int aux = 0;
-	
+	int estado;
 	do
 	{
 
@@ -405,6 +405,8 @@ int main()
 					sigqueue(pid, SIGUSR1, valores); // fechar promotor
 				}
 			}
+			wait(&estado);
+			printf("%d\n",estado);
 			break;
 
 		case 3:
