@@ -63,7 +63,7 @@ int leComandosCliente(char *comando)
 		else if (strcmp(comando, "exit") == 0)
 		{
 			printf("\n valido\n");
-			exit(1);
+			return 0;
 		}
 		else
 			printf("Comando invalido\n");
@@ -136,6 +136,7 @@ typedef struct
 	pid_t pid;
 	char nome[100];
 	char pass[100];
+	char com[100];
 } dataMsg;
 
 typedef struct
@@ -143,9 +144,18 @@ typedef struct
 	int res;
 } dataRPL;
 
+void sair(int signal)
+{
+	unlink(CLIENT_FIFO);
+	exit(1);
+}
+
 int main(int argc, char *argv[])
 {
 	int aux;
+	struct sigaction sac;
+	sac.sa_handler = sair;
+	sigaction(SIGINT, &sac, NULL);
 
 	if (argc == 3)
 	{
@@ -171,8 +181,14 @@ int main(int argc, char *argv[])
 		strcpy(mensagem.nome, argv[1]);
 		strcpy(mensagem.pass, argv[2]);
 		fd_envio = open(BACKEND_FIFO, O_WRONLY);
+
+		if (fd_envio == -1)
+		{ // backend nao esta a correr logo frontend nao corre
+			return 2;
+		}
+
 		int size = write(fd_envio, &mensagem, sizeof(mensagem));
-		close(fd_envio);
+		//close(fd_envio);
 		fd_resposta = open(CLIENT_FIFO_FINAL, O_RDONLY);
 		if (fd_resposta == -1)
 		{
@@ -180,7 +196,7 @@ int main(int argc, char *argv[])
 		}
 		int siz2 = read(fd_resposta, &resposta, sizeof(resposta));
 		close(fd_resposta);
-		
+
 		if (resposta.res == 1)
 		{
 			char comando[20];
@@ -190,15 +206,27 @@ int main(int argc, char *argv[])
 				printf("\n>>Deseja testar que comando?");
 				fgets(comando, 200, stdin);
 				aux = leComandosCliente(comando);
+				
 			} while (aux != 0);
-		}else{
-			printf("permissao recusada");
+			if (strcmp(comando, "exit")==0)
+			{
+				strcpy(mensagem.com, comando);
+				size = write(fd_envio, &mensagem, sizeof(mensagem));
+				close(fd_envio);
+			}
+	
 		}
+		else
+		{
+			printf("Permissao recusada");
+			return 3;
+		}
+		close(fd_envio);
 	}
 	else
 	{
 		printf("Erro em numero de argumentos\n");
 	}
 
-	return 0;
+	return 4;
 }

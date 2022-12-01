@@ -189,7 +189,7 @@ int executaPromotor(int fd_p2b[2])
 		dup(fd_p2b[1]);
 		close(fd_p2b[0]);
 		close(fd_p2b[1]);
-		
+
 		execl("./promotor_oficial", "promotor_oficial", NULL);
 	}
 	return f;
@@ -215,6 +215,7 @@ typedef struct
 	pid_t pid;
 	char nome[100];
 	char pass[100];
+	char com[100];
 } dataMsg;
 
 typedef struct
@@ -222,10 +223,9 @@ typedef struct
 	int res;
 } dataRPL;
 
-void handler_sigalrm(int signal, siginfo_t *info, void *extra)
+void sair(int signal)
 {
 	unlink(BACKEND_FIFO);
-	printf("adeus");
 	exit(1);
 }
 
@@ -234,9 +234,10 @@ int main()
 	//--------- RECEBE CENAS DO FRONTEND AQUI ----------------
 	dataMsg mensagemRecebida;
 	dataRPL resposta;
-	struct sigaction sa;
-	sa.sa_sigaction = handler_sigalrm;
-	sigaction(SIGINT, &sa, NULL);
+	int fdRecebe, fdEnvio;
+	struct sigaction sac;
+		sac.sa_handler = sair;
+	sigaction(SIGINT, &sac, NULL);
 
 	if (mkfifo(BACKEND_FIFO, 0666) == -1)
 	{
@@ -248,36 +249,52 @@ int main()
 		printf("erro ao abrir fifo\n");
 		return 1;
 	}
-	int fdRecebe = open(BACKEND_FIFO, O_RDONLY);
-	if (fdRecebe == -1)
-	{
-		printf("erro ao abrir o servidor");
-		return 1;
-	}
 
-	int size = read(fdRecebe, &mensagemRecebida, sizeof(mensagemRecebida));
-	if (size > 0)
+
+	printf("Pronto para receber utilizadores !\n");
+	do
 	{
-		utilizadores_len = loadUsersFile(USER_FILENAME);
-		int aux = isUserValid(mensagemRecebida.nome, mensagemRecebida.pass);
-		if (aux == 1)
-		{
-			resposta.res = 1;
+		printf("\n...\n");
+		fdRecebe = open(BACKEND_FIFO, O_RDONLY);
+		if (fdRecebe == -1)		{
+			printf(">> Erro ao abrir o backend");
+			return 1;		
 		}
-		else
+		int size = read(fdRecebe, &mensagemRecebida, sizeof(mensagemRecebida));
+		if (size > 0)
 		{
-			resposta.res = 0;
-			
+			utilizadores_len = loadUsersFile(USER_FILENAME);
+			int aux = isUserValid(mensagemRecebida.nome, mensagemRecebida.pass);
+			if (aux == 1)
+			{
+				printf("\n>> Utilizador: %s logado com pid %d\n", mensagemRecebida.nome, mensagemRecebida.pid);
+				resposta.res = 1;
+			}
+			else
+			{
+				printf("\n>> Utilizador nao conhecido!\n");
+				resposta.res = 0;
+			}
+			sprintf(CLIENT_FIFO_FINAL, CLIENT_FIFO, mensagemRecebida.pid);
+			fdEnvio = open(CLIENT_FIFO_FINAL, O_WRONLY);
+			int size2 = write(fdEnvio, &resposta, sizeof(resposta));
+			close(fdEnvio);
+
+			// se o user ainda estiver logado nao vai haver nada para ler e o programa segue
+			size = read(fdRecebe, &mensagemRecebida, sizeof(mensagemRecebida));
+			if(strcmp(mensagemRecebida.com, "exit")==0){
+				// so entra aqui quando user saiu com "exit"
+				printf("\n>> User %s saiu!\n", mensagemRecebida.nome);
+			}else{
+				// so entra aqui quando user saiu sem "exit"
+				printf("\n>> User %s saiu sem avisar!\n", mensagemRecebida.nome);
+			}
 		}
-		sprintf(CLIENT_FIFO_FINAL, CLIENT_FIFO, mensagemRecebida.pid);
-		int fdEnvio = open(CLIENT_FIFO_FINAL, O_WRONLY);
-		int size2 = write(fdEnvio, &resposta, sizeof(resposta));
-		close(fdEnvio);
-	}
-	unlink(BACKEND_FIFO);
+	} while (fdEnvio != -1);
+	
+	
 	//--------------------------------------------
-
-
+	//--------------------------------------------
 
 	char outputPromotores[100];
 	// maximo de promotores
@@ -352,11 +369,11 @@ int main()
 			break;
 
 		case 3:
-		 	utilizadores_len = loadUsersFile(USER_FILENAME);
+			utilizadores_len = loadUsersFile(USER_FILENAME);
 			int opcaoUser = 0;
 			do
 			{
-				
+
 				char nome[100];
 				char password[100];
 				int saldo;
