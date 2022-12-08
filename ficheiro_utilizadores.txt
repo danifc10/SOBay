@@ -1,3 +1,3 @@
-daniela ola 3
-tiago adeus 3
+daniela ola 0
+tiago adeus 0
 

@@ -13,9 +13,155 @@
 #include "item.h"
 #define BACKEND_FIFO "BACKEND"
 #define CLIENT_FIFO "CLIENTE%d"
+#define HEARTBEAT 4
 char CLIENT_FIFO_FINAL[100];
+user *utilizadores;
 
-int leComandosCliente(char *comando)
+void adicionaItem(item *i, char *n, int id, char *ctg, int vb, int cj, int tmp)
+{
+	item *new = malloc(sizeof(item));
+	new->id = id;
+	strcpy(new->categoria, ctg);
+	strcpy(new->nome, n);
+	new->tempo = tmp;
+	new->compra_ja = cj;
+	new->valor_base = vb;
+	new->prox = NULL;
+	if (i->prox == NULL)
+	{
+		i->prox = new;
+	}
+	else
+	{
+		item *aux = i->prox;
+		while (aux->prox != NULL)
+		{
+			aux = aux->prox;
+			aux->prox = new;
+		}
+	}
+}
+
+void leFicheiroItem(char *nomeFich, item *i)
+{
+	FILE *f;
+	char Linha[100];
+
+	f = fopen(nomeFich, "rt");
+
+	if (f == NULL)
+	{
+		printf("ERRO");
+		fclose(f);
+		return;
+	}
+
+	while (!feof(f))
+	{
+
+		char nome[100], categoria[100], nomeU[100], licitador[100];
+		int id, valor_base, compra_ja, tempo;
+
+		fgets(Linha, 100, f);
+		sscanf(Linha, "%d %s %s %d %d %d %s %s", &id, &nome, &categoria, &valor_base, &compra_ja, &tempo, &nomeU, &licitador);
+
+		adicionaItem(i, nome, id, categoria, valor_base, compra_ja, tempo);
+		i = i->prox;
+	}
+
+	fclose(f);
+}
+
+void mostraItem(item *i)
+{
+	item *aux;
+	aux = i->prox;
+	while (aux != NULL)
+	{
+		printf("\n\nID: %d\n", aux->id);
+		printf("Nome: %s\n", aux->nome);
+		printf("Catg: %s\n", aux->categoria);
+		printf("ValorBase: %d\n", aux->valor_base);
+		printf("CompraJa: %d\n", aux->compra_ja);
+		printf("Tempo: %d\n", aux->tempo);
+
+		aux = aux->prox;
+	}
+}
+
+void licat(char *ctg, item *i)
+{
+
+	while (i)
+	{
+		if (strcmp(i->categoria, ctg) == 0)
+		{
+			printf("\n\nID: %d\n", i->id);
+			printf("Nome: %s\n", i->nome);
+			printf("Catg: %s\n", i->categoria);
+			printf("ValorBase: %d\n", i->valor_base);
+			printf("CompraJa: %d\n", i->compra_ja);
+			printf("Tempo: %d\n", i->tempo);
+		}
+
+		i = i->prox;
+	}
+}
+
+void lisel(char *nome, item *i)
+{
+	while (utilizadores)
+	{
+		if (strcmp(utilizadores->nome, nome) == 0)
+		{
+			printf("\n\nID: %d\n", utilizadores->i->id);
+			printf("Nome: %s\n", utilizadores->i->nome);
+			printf("Catg: %s\n", utilizadores->i->categoria);
+			printf("ValorBase: %d\n", utilizadores->i->valor_base);
+			printf("CompraJa: %d\n", utilizadores->i->compra_ja);
+			printf("Tempo: %d\n", utilizadores->i->tempo);
+		}
+	}
+}
+
+void lival(int value, item *i)
+{
+
+	while (i->prox != NULL)
+	{
+		if (value >= (i->valor_base))
+		{
+			printf("\n\nID: %d\n", i->id);
+			printf("Nome: %s\n", i->nome);
+			printf("Catg: %s\n", i->categoria);
+			printf("ValorBase: %d\n", i->valor_base);
+			printf("CompraJa: %d\n", i->compra_ja);
+			printf("Tempo: %d\n", i->tempo);
+		}
+
+		i = i->prox;
+	}
+}
+void litime(int time, item *i)
+{
+
+	while (i)
+	{
+		if (time >= (i->tempo))
+		{
+			printf("\n\nID: %d\n", i->id);
+			printf("Nome: %s\n", i->nome);
+			printf("Catg: %s\n", i->categoria);
+			printf("ValorBase: %d\n", i->valor_base);
+			printf("CompraJa: %d\n", i->compra_ja);
+			printf("Tempo: %d\n", i->tempo);
+		}
+
+		i = i->prox;
+	}
+}
+
+int leComandosCliente(char *comando, item *i)
 {
 	char aux[100];
 	int count = 0; // variavel para contar os espaços em branco
@@ -43,6 +189,7 @@ int leComandosCliente(char *comando)
 		if (strcmp(comando, "list") == 0)
 		{
 			printf("\nvalido");
+			mostraItem(i);
 			return 1;
 		}
 		else if (strcmp(comando, "add") == 0)
@@ -76,21 +223,28 @@ int leComandosCliente(char *comando)
 		if (strcmp(comando, "licat") == 0)
 		{
 			printf("\nvalido -  comando: %s --- categoria %s", comando, argumento);
+			licat(argumento, i);
 			return 1;
 		}
 		else if (strcmp(comando, "lisel") == 0)
 		{
 			printf("\nvalido -  comando: %s --- user %s", comando, argumento);
+			// lisel(argumento), i;
 			return 1;
 		}
 		else if (strcmp(comando, "litime") == 0)
 		{
+			int tempo = atoi(argumento);
 			printf("\nvalido - comando: %s --- tempo %d", comando, atoi(argumento));
+			litime(tempo, i);
 			return 1;
 		}
 		else if (strcmp(comando, "lival") == 0)
 		{
+			int valor = atoi(argumento);
+
 			printf("\nvalido -  comando: %s --- precoMAx %d", comando, atoi(argumento));
+			lival(valor, i);
 			return 1;
 		}
 		else
@@ -141,29 +295,31 @@ typedef struct
 
 typedef struct
 {
+	pid_t pidB;
 	int res;
+	item *i;
 } dataRPL;
-
-void sair(int signal)
+void handler_sinal(int signal, siginfo_t *info, void *extra)
 {
-	unlink(CLIENT_FIFO);
+	
+	printf("\n\nDESCONECTADO");
+	unlink(CLIENT_FIFO_FINAL);
 	exit(1);
 }
 
 int main(int argc, char *argv[])
 {
-	int aux;
-	struct sigaction sac;
-	sac.sa_handler = sair;
-	sigaction(SIGINT, &sac, NULL);
 
 	if (argc == 3)
 	{
-
 		dataMsg mensagem;
 		dataRPL resposta;
 		mensagem.pid = getpid();
 		int fd_envio, fd_resposta;
+
+		struct sigaction sac;
+		sac.sa_sigaction = handler_sinal;
+		sigaction(SIGUSR1, &sac, NULL);
 
 		sprintf(CLIENT_FIFO_FINAL, CLIENT_FIFO, getpid());
 
@@ -180,15 +336,15 @@ int main(int argc, char *argv[])
 
 		strcpy(mensagem.nome, argv[1]);
 		strcpy(mensagem.pass, argv[2]);
-		fd_envio = open(BACKEND_FIFO, O_WRONLY);
 
+		fd_envio = open(BACKEND_FIFO, O_WRONLY);
 		if (fd_envio == -1)
 		{ // backend nao esta a correr logo frontend nao corre
 			return 2;
 		}
-
 		int size = write(fd_envio, &mensagem, sizeof(mensagem));
-		//close(fd_envio);
+		close(fd_envio);
+		// RECEBER RESPOSTA
 		fd_resposta = open(CLIENT_FIFO_FINAL, O_RDONLY);
 		if (fd_resposta == -1)
 		{
@@ -197,35 +353,47 @@ int main(int argc, char *argv[])
 		int siz2 = read(fd_resposta, &resposta, sizeof(resposta));
 		close(fd_resposta);
 
+		// BACKEND ACEITOU
+		int aux;
 		if (resposta.res == 1)
 		{
 			char comando[20];
 			printf("Bem vindo %s!\n", argv[1]);
 			do
 			{
+				// STRUCT SERA VINDA DO BACKEND E NAO ASSIM
+				item *i = malloc(sizeof(item));
+				i->prox = NULL;
+
 				printf("\n>>Deseja testar que comando?");
 				fgets(comando, 200, stdin);
-				aux = leComandosCliente(comando);
-				
+				aux = leComandosCliente(comando, i);
+
+				// se sair manda info ao backend
+				if (strcmp(comando, "exit") == 0)
+				{
+					strcpy(mensagem.com, comando);
+					fd_envio = open(BACKEND_FIFO, O_WRONLY);
+					write(fd_envio, &mensagem, sizeof(mensagem));
+					close(fd_envio);
+					printf("\nA SAIR..");
+					unlink(CLIENT_FIFO_FINAL);
+					exit(1);
+				}
+
 			} while (aux != 0);
-			if (strcmp(comando, "exit")==0)
-			{
-				strcpy(mensagem.com, comando);
-				size = write(fd_envio, &mensagem, sizeof(mensagem));
-				close(fd_envio);
-			}
-	
 		}
-		else
+		else // BACKEND NAO ACEITOU
 		{
-			printf("Permissao recusada");
+			printf("Erro no login\n");
+			unlink(CLIENT_FIFO_FINAL);
 			return 3;
 		}
 		close(fd_envio);
 	}
 	else
 	{
-		printf("Erro em numero de argumentos\n");
+		printf("Erro em numero de argumentos\nSintaxe: ./frontend nome pass\n");
 	}
 
 	return 4;

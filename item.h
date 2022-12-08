@@ -1,6 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+
 #ifndef ITEM_H
 #define ITEM_H
 #define FITEM "items.txt"
@@ -13,11 +11,15 @@ struct Item{
 	int valor_base;
 	int compra_ja;
 	int tempo;
-	ptr prox;
+	struct Item *prox;
 };
 
-void mostraItem();
-void adicionaItem(char *n, int id, char *ctg, int vb, int cj, int tmp);
-void leFicheiroItem(char *nomeFich);
+void mostraItem(item *i);
+void licat(char *ctg, item *i);
+void lisel(char *nome,  item *i);
+void lival(int value,  item *i);
+void litime(int time,  item *i);
+void adicionaItem(item *i, char *n, int id, char *ctg, int vb, int cj, int tmp);
+void leFicheiroItem(char *nomeFich, item *i);
 
 #endif
