@@ -257,7 +257,6 @@ int leComandosCliente(char *comando, item *i)
 		sscanf(aux, "%s %s %s", comando, id, valor);
 		if (strcmp(comando, "buy") == 0)
 		{
-
 			printf("\nvalido -  comando: %s -- id %d -- valor %d", comando, atoi(id), atoi(valor));
 			return 1;
 		}
@@ -299,6 +298,7 @@ typedef struct
 	int res;
 	item *i;
 } dataRPL;
+
 void handler_sinal(int signal, siginfo_t *info, void *extra)
 {
 	
@@ -357,17 +357,15 @@ int main(int argc, char *argv[])
 		int aux;
 		if (resposta.res == 1)
 		{
+			resposta.i = malloc(sizeof(item));
 			char comando[20];
 			printf("Bem vindo %s!\n", argv[1]);
 			do
 			{
-				// STRUCT SERA VINDA DO BACKEND E NAO ASSIM
-				item *i = malloc(sizeof(item));
-				i->prox = NULL;
-
+			
 				printf("\n>>Deseja testar que comando?");
 				fgets(comando, 200, stdin);
-				aux = leComandosCliente(comando, i);
+				aux = leComandosCliente(comando, resposta.i);
 
 				// se sair manda info ao backend
 				if (strcmp(comando, "exit") == 0)

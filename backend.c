@@ -16,10 +16,9 @@
 #define FPROMOTORES "ficheiro_promotores.txt"
 #define BACKEND_FIFO "BACKEND"
 #define CLIENT_FIFO "CLIENTE%d"
-#define TAM 1000
+#define TAM 20
 char CLIENT_FIFO_FINAL[100];
 
-user *utilizadores;
 int utilizadores_len;
 
 void mostraItem(item *i)
@@ -95,45 +94,41 @@ void leFicheiroItem(char *nomeFich, item *i)
 	fclose(f);
 }
 
-void mostraUsers(char *vUser[TAM], int pids[TAM], int count)
+int leProms(char *nomeFich, char *PromsName[TAM])
+{
+	FILE *f;
+	char Linha[100];
+
+	f = fopen(nomeFich, "rt");
+
+	if (f == NULL)
+	{
+		printf("ERRO");
+		fclose(f);
+		return 0;
+	}
+	int i = 0;
+	while (!feof(f))
+	{
+		PromsName[i] = malloc(30);
+		fgets(Linha, 100, f);
+		sscanf(Linha, "%s", PromsName[i]);
+		i++;
+	}
+
+	fclose(f);
+	return i;
+}
+
+void mostraProms(char *PromsName[TAM], int count)
 {
 	for (int i = 0; i < count; i++)
 	{
-		if (pids[i] != 0 && (strcmp(vUser[i], "") != 0))
-		{
-			printf("\nnome: %s pid: %d\n",vUser[i], pids[i]);
-		}
+		printf("\nnome: %s \n", PromsName[i]);
 	}
 }
 
-int eliminaUser(char *vUsers[TAM], int pids[TAM], char *nome, int contaUsers)
-{
-
-	for (int i = 0; i < contaUsers; i++)
-	{
-		if (strcmp(vUsers[i], nome) == 0)
-		{
-			free(vUsers[i]);
-			contaUsers--;
-			kill(pids[i], SIGUSR1);
-			pids[i] = 0;
-		}
-	}
-	return contaUsers;
-}
-void fechaFrontends(char *vUsers[TAM], int pids[TAM], int contaUsers)
-{
-	for (int i = 0; i < contaUsers; i++)
-	{
-		if (strcmp(vUsers[i], "") != 0 && pids[i] != 0)
-		{
-			kill(pids[i], SIGUSR1);
-		}
-	}
-}
-
-
-int executaPromotor(int fd_p2b[2])
+int executaPromotor(int fd_p2b[2], char *PromsName[TAM], int count)
 {
 	int f = fork();
 	if (f == -1)
@@ -159,7 +154,64 @@ char *recebePromotor(int fd_p2b[2])
 	return strtok(msg, "\n");
 }
 
-int leComandosAdmin(char *comando, char *vUser[TAM], int pids[TAM], int contaUsers, item *i)
+void userscmd(user *a, int tam)
+{
+	printf("tam:%d", tam);
+	for (int i = 0; i < tam; i++)
+	{
+		printf("Nome: %s\n", a[i].nome);
+	}
+}
+int eliminaUser(user *a, char *nome, int tam)
+{
+	for (int i = 0; i < tam; i++)
+	{
+		if (strcmp(a[i].nome, nome) == 0)
+		{
+			kill(a[i].pid, SIGUSR1);
+			for (int j = i; j < tam - 1; j++)
+			{
+				a[j] = a[j + 1];
+			}
+			return tam - 1;
+		}
+	}
+	return tam;
+}
+
+
+void fechaFrontends(user *a, int tam)
+{
+	for (int i = 0; i < tam; i++)
+	{
+		if (a[i].pid != 0 && strcmp(a[i].nome, "") != 0)
+		{
+			kill(a[i].pid, SIGUSR1);
+		}
+	}
+}
+
+int existe(user *a, int tamanho, char *nome)
+{ // 0 se nao existe 1 se existe
+	for (int i = 0; i < tamanho; i++)
+	{
+		if (strcmp(a[i].nome, nome) == 0)
+		{
+			return 1;
+		}
+	}
+	return 0;
+}
+
+user *addUser(user *a, int tam, char *nome, int pid)
+{
+	strcpy(a[tam - 1].nome, nome);
+	a[tam - 1].saldo = 0;
+	a[tam - 1].pid = pid;
+	return a;
+}
+
+int leComandosAdmin(char *comando, user *a, int contaUsers, item *i)
 {
 	char aux[100];
 	char argumento[20];
@@ -183,53 +235,47 @@ int leComandosAdmin(char *comando, char *vUser[TAM], int pids[TAM], int contaUse
 		if (strcmp(comando, "list") == 0)
 		{
 			mostraItem(i);
-			return 1;
+			printf("Comando Valido!\n");
 		}
 		else if (strcmp(comando, "users") == 0)
 		{
-			mostraUsers(vUser, pids, contaUsers);
-			return 1;
+			userscmd(a, contaUsers);
+			printf("Comando Valido!\n");
 		}
 		else if (strcmp(comando, "prom") == 0)
 		{
-			return 1;
+			printf("Comando Valido!\n");
 		}
 		else if (strcmp(comando, "reprom") == 0)
 		{
-			return 1;
+			printf("Comando Valido!\n");
 		}
 		else if (strcmp(comando, "close") == 0)
 		{
-			fechaFrontends(vUser, pids, contaUsers);
+			fechaFrontends(a, contaUsers);
 			union sigval xpto;
 			sigqueue(getpid(), SIGINT, xpto);
-			return 1;
+			printf("Comando Valido!\n");
 		}
-		else
-			return 0;
-		break;
+		return contaUsers;
 
 	case 1:
 
 		sscanf(aux, "%s %s", comando, argumento);
 		if (strcmp(comando, "kick") == 0)
 		{
-			contaUsers = eliminaUser(vUser, pids, argumento, contaUsers);
-			return 1;
+			contaUsers = eliminaUser(a, argumento, contaUsers);
+			printf("Comando Valido!\n");
 		}
 		else if (strcmp(comando, "cancel") == 0)
 		{
-
-			return 1;
+			printf("Comando Valido!\n");
 		}
-		else
-			return 0;
-		break;
-
+		return contaUsers;
+		
 	default:
-
-		return 0;
-		break;
+		printf("Comando Invalido!\n");
+		return contaUsers;
 	}
 }
 
@@ -254,21 +300,25 @@ void sair(int signal, siginfo_t *info, void *extra)
 	exit(1);
 }
 
-void addUser(char *vUsers[TAM], int pids[TAM], int contaUsers, char *nome, int pid)
-{
-
-	vUsers[contaUsers - 1] = malloc(30);
-	strcpy(vUsers[contaUsers - 1], nome);
-	pids[contaUsers - 1] = pid;
-}
 
 int main()
 {
-
 	dataMsg mensagemRecebida;
 	dataRPL resposta;
 	int fdRecebe, fdEnvio;
+	int user_len;
+	resposta.pidB = getpid();
+	resposta.i = malloc(sizeof(item));
+	resposta.i;
 
+	/*----------------------------------- LEITURA DE FICHEIROS DE TEXTO ------------------------------------*/
+	leFicheiroItem(FITEM, resposta.i);
+	user_len = loadUsersFile(USER_FILENAME);
+	user *a = (user *)malloc(user_len * sizeof(user));
+	char **PromsName = malloc(TAM);
+	int Pcount = leProms(FPROMOTORES, PromsName);
+
+	/*------------------------------------------------------------------------------------------------------*/
 	struct sigaction sac;
 	sac.sa_sigaction = sair;
 	sigaction(SIGINT, &sac, NULL);
@@ -292,18 +342,12 @@ int main()
 		return 1;
 	}
 
-	resposta.pidB = getpid();
-	resposta.i = malloc(sizeof(item));
-	leFicheiroItem(FITEM, resposta.i);
-
 	int nfd;
 	fd_set read_fds;
 	struct timeval tv;
 	int maior = fdRecebe + 1; //  maior FD acrescido de 1
 	char buffer[100];
 
-	char **vUSers = malloc(TAM);
-	int *pids = malloc(TAM * sizeof(int));
 	int contaUsers = 0;
 
 	do
@@ -319,16 +363,7 @@ int main()
 		if (FD_ISSET(0, &read_fds))
 		{
 			fgets(buffer, sizeof(buffer), stdin);
-			int aux = leComandosAdmin(buffer, vUSers, pids, contaUsers, resposta.i);
-
-			if (aux == 0)
-			{
-				printf("Comando Invalido!\n");
-			}
-			else if (aux == 1)
-			{
-				printf("Comando Valido!\n");
-			}
+			contaUsers = leComandosAdmin(buffer, a, contaUsers, resposta.i);
 		}
 		if (FD_ISSET(fdRecebe, &read_fds))
 		{
@@ -339,22 +374,22 @@ int main()
 				{
 					// so entra aqui quando user saiu com "exit"
 					printf("\n>> User %s saiu!\n", mensagemRecebida.nome);
-					contaUsers = eliminaUser(vUSers, pids, mensagemRecebida.nome, contaUsers);
+					contaUsers = eliminaUser(a, mensagemRecebida.nome, contaUsers);
 				}
 				else
 				{
-					utilizadores_len = loadUsersFile(USER_FILENAME);
-					int aux = isUserValid(mensagemRecebida.nome, mensagemRecebida.pass);
-					if (aux == 1)
+
+					int valido = isUserValid(mensagemRecebida.nome, mensagemRecebida.pass);
+					int aux = existe(a, contaUsers, mensagemRecebida.nome); // se ja estiver logado nao pode logar otv
+					if (aux == 0 && valido == 1)
 					{
 						printf("\n>> Utilizador: %s logado com pid %d\n", mensagemRecebida.nome, mensagemRecebida.pid);
 						resposta.res = 1;
 						++contaUsers;
-						addUser(vUSers, pids, contaUsers, mensagemRecebida.nome, mensagemRecebida.pid);
+						a = addUser(a, contaUsers, mensagemRecebida.nome, mensagemRecebida.pid);
 					}
 					else
 					{
-						printf("\n>> Utilizador nao conhecido!\n");
 						resposta.res = 0;
 					}
 					sprintf(CLIENT_FIFO_FINAL, CLIENT_FIFO, mensagemRecebida.pid);

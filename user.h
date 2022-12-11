@@ -13,6 +13,7 @@ struct Utilizador{
 	item *i;
 	int nItem;
 	int saldo;
+	int pid;
 };
 
 #endif
