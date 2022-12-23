@@ -2,7 +2,6 @@
 #include "item.h"
 #include <string.h>
 #include <stdlib.h>
-
 #include <ctype.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -13,6 +12,10 @@
 #include "user.h"
 #include "users_lib.h"
 #include <errno.h>
+#include <pthread.h>
+#include <sys/select.h>
+#include "utils.h"
+
 #define FPROMOTORES "ficheiro_promotores.txt"
 #define BACKEND_FIFO "BACKEND"
 #define CLIENT_FIFO "CLIENTE%d"
@@ -94,7 +97,55 @@ void leFicheiroItem(char *nomeFich, item *i)
 	fclose(f);
 }
 
-int leProms(char *nomeFich, char *PromsName[TAM])
+void recebePromotor(int fd_p2b[2])
+{
+	printf("entrei recebe\n");
+	char msg[100];
+	read(fd_p2b[0], msg, 100);
+	printf("Msg:%s", msg);
+	//return strtok(msg, "\n");
+}
+
+int executaPromotor(int fd_p2b[2], char *PromsName, int count)
+{
+	int f = fork();
+	printf("entrei executa\n");
+	if (f == -1)
+	{
+		printf("ERRO: %s\n", getLastErrorText());
+	}
+	else if (f == 0)
+	{
+		char PromsExec[TAM];
+		strcpy(PromsExec, PromsName);
+		close(1);
+		dup(fd_p2b[1]);
+		close(fd_p2b[0]);
+		close(fd_p2b[1]);
+
+		for (int i = 0; i < count + 2; i++)
+		{
+			PromsName[i + 1] = PromsName[i];
+			if (i == 0)
+			{
+				PromsName[i] = '.';
+			}
+			else if (i == 1)
+			{
+				PromsName[i] = '/';
+			}
+		}
+		int erro = execl(PromsName, PromsExec, NULL);
+		if(erro ==-1){
+			printf("erro %s", errno);
+		}
+		recebePromotor(fd_p2b);
+	}
+	return f;
+}
+
+
+int leProms(char *nomeFich, char *PromsName[TAM], int fd[2])
 {
 	FILE *f;
 	char Linha[100];
@@ -113,6 +164,7 @@ int leProms(char *nomeFich, char *PromsName[TAM])
 		PromsName[i] = malloc(30);
 		fgets(Linha, 100, f);
 		sscanf(Linha, "%s", PromsName[i]);
+		executaPromotor(fd, PromsName[i], strlen(PromsName[i]));
 		i++;
 	}
 
@@ -128,38 +180,12 @@ void mostraProms(char *PromsName[TAM], int count)
 	}
 }
 
-int executaPromotor(int fd_p2b[2], char *PromsName[TAM], int count)
-{
-	int f = fork();
-	if (f == -1)
-	{
-		printf("ERRO: %s\n", getLastErrorText());
-	}
-	else if (f == 0)
-	{
-		close(1);
-		dup(fd_p2b[1]);
-		close(fd_p2b[0]);
-		close(fd_p2b[1]);
-
-		execl("./promotor_oficial", "promotor_oficial", NULL);
-	}
-	return f;
-}
-
-char *recebePromotor(int fd_p2b[2])
-{
-	char msg[100];
-	read(fd_p2b[0], msg, 100);
-	return strtok(msg, "\n");
-}
 
 void userscmd(user *a, int tam)
 {
-	printf("tam:%d", tam);
 	for (int i = 0; i < tam; i++)
 	{
-		printf("Nome: %s\n", a[i].nome);
+		printf("User %d: %s\n",i+1, a[i].nome);
 	}
 }
 int eliminaUser(user *a, char *nome, int tam)
@@ -178,7 +204,6 @@ int eliminaUser(user *a, char *nome, int tam)
 	}
 	return tam;
 }
-
 
 void fechaFrontends(user *a, int tam)
 {
@@ -216,6 +241,7 @@ int leComandosAdmin(char *comando, user *a, int contaUsers, item *i)
 	char aux[100];
 	char argumento[20];
 	int count = 0;
+	dataRPL u;
 
 	for (int i = 0; i < strlen(comando) - 1; i++)
 	{
@@ -234,12 +260,15 @@ int leComandosAdmin(char *comando, user *a, int contaUsers, item *i)
 
 		if (strcmp(comando, "list") == 0)
 		{
+			printf("--------------------ITEMS---------------------\n");
 			mostraItem(i);
 			printf("Comando Valido!\n");
 		}
 		else if (strcmp(comando, "users") == 0)
 		{
+			printf("--------------------USERS---------------------\n");
 			userscmd(a, contaUsers);
+		
 			printf("Comando Valido!\n");
 		}
 		else if (strcmp(comando, "prom") == 0)
@@ -265,59 +294,41 @@ int leComandosAdmin(char *comando, user *a, int contaUsers, item *i)
 		if (strcmp(comando, "kick") == 0)
 		{
 			contaUsers = eliminaUser(a, argumento, contaUsers);
-			printf("Comando Valido!\n");
+			printf("User %s expulsado!\n", argumento);
 		}
 		else if (strcmp(comando, "cancel") == 0)
 		{
 			printf("Comando Valido!\n");
 		}
 		return contaUsers;
-		
+
 	default:
 		printf("Comando Invalido!\n");
 		return contaUsers;
 	}
 }
 
-typedef struct
-{
-	pid_t pid;
-	char nome[100];
-	char pass[100];
-	char com[100];
-} dataMsg;
 
-typedef struct
+void sair(int s)
 {
-	pid_t pidB;
-	int res;
-	item *i;
-} dataRPL;
-
-void sair(int signal, siginfo_t *info, void *extra)
-{
+	fechaFrontends(a, user_len);
 	unlink(BACKEND_FIFO);
 	exit(1);
 }
-
 
 int main()
 {
 	dataMsg mensagemRecebida;
 	dataRPL resposta;
 	int fdRecebe, fdEnvio;
-	int user_len;
+	
 	resposta.pidB = getpid();
 	resposta.i = malloc(sizeof(item));
-	resposta.i;
-
 	/*----------------------------------- LEITURA DE FICHEIROS DE TEXTO ------------------------------------*/
 	leFicheiroItem(FITEM, resposta.i);
+	i = resposta.i;
 	user_len = loadUsersFile(USER_FILENAME);
-	user *a = (user *)malloc(user_len * sizeof(user));
-	char **PromsName = malloc(TAM);
-	int Pcount = leProms(FPROMOTORES, PromsName);
-
+	a = (user *)malloc(user_len * sizeof(user));
 	/*------------------------------------------------------------------------------------------------------*/
 	struct sigaction sac;
 	sac.sa_sigaction = sair;
@@ -363,7 +374,7 @@ int main()
 		if (FD_ISSET(0, &read_fds))
 		{
 			fgets(buffer, sizeof(buffer), stdin);
-			contaUsers = leComandosAdmin(buffer, a, contaUsers, resposta.i);
+			contaUsers = leComandosAdmin(buffer, a, contaUsers, i);
 		}
 		if (FD_ISSET(fdRecebe, &read_fds))
 		{
@@ -401,7 +412,9 @@ int main()
 		}
 
 	} while (1);
+    
 
+	
 	//--------------------------------------------
 	//--------------------------------------------
 	/*

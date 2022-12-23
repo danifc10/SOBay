@@ -11,11 +11,13 @@
 #include <sys/stat.h>
 #include "user.h"
 #include "item.h"
+#include "users_lib.h"
+#include "utils.h"
 #define BACKEND_FIFO "BACKEND"
 #define CLIENT_FIFO "CLIENTE%d"
 #define HEARTBEAT 4
 char CLIENT_FIFO_FINAL[100];
-user *utilizadores;
+
 
 void adicionaItem(item *i, char *n, int id, char *ctg, int vb, int cj, int tmp)
 {
@@ -107,22 +109,22 @@ void licat(char *ctg, item *i)
 		i = i->prox;
 	}
 }
-
+/*
 void lisel(char *nome, item *i)
 {
-	while (utilizadores)
+	while (a)
 	{
-		if (strcmp(utilizadores->nome, nome) == 0)
+		if (strcmp(a->nome, nome) == 0)
 		{
-			printf("\n\nID: %d\n", utilizadores->i->id);
-			printf("Nome: %s\n", utilizadores->i->nome);
-			printf("Catg: %s\n", utilizadores->i->categoria);
-			printf("ValorBase: %d\n", utilizadores->i->valor_base);
-			printf("CompraJa: %d\n", utilizadores->i->compra_ja);
-			printf("Tempo: %d\n", utilizadores->i->tempo);
+			printf("\n\nID: %d\n", a->i->id);
+			printf("Nome: %s\n", a->i->nome);
+			printf("Catg: %s\n", a->i->categoria);
+			printf("ValorBase: %d\n", a->i->valor_base);
+			printf("CompraJa: %d\n", a->i->compra_ja);
+			printf("Tempo: %d\n", a->i->tempo);
 		}
 	}
-}
+}*/
 
 void lival(int value, item *i)
 {
@@ -161,8 +163,11 @@ void litime(int time, item *i)
 	}
 }
 
-int leComandosCliente(char *comando, item *i)
+
+
+int leComandosCliente(char *comando, item *i, dataMsg mensagem)
 {
+
 	char aux[100];
 	int count = 0; // variavel para contar os espaços em branco
 
@@ -179,7 +184,8 @@ int leComandosCliente(char *comando, item *i)
 	char argumento[20];
 	char valor[5], id[5];
 	char categoria[20];
-	char nome[20], preco[6], compreJa[6], duracao[6];
+	char nome[20];
+	int preco, compreJa, duracao;
 
 	switch (count)
 	{
@@ -192,14 +198,10 @@ int leComandosCliente(char *comando, item *i)
 			mostraItem(i);
 			return 1;
 		}
-		else if (strcmp(comando, "add") == 0)
-		{
-			printf("\n valido");
-			return 1;
-		}
 		else if (strcmp(comando, "cash") == 0)
 		{
-			printf("\n valido");
+			printf("%s", mensagem.nome);
+			printf("\n--- SALDO : %d", getUserBalance(mensagem.nome));
 			return 1;
 		}
 		else if (strcmp(comando, "time") == 0)
@@ -229,7 +231,7 @@ int leComandosCliente(char *comando, item *i)
 		else if (strcmp(comando, "lisel") == 0)
 		{
 			printf("\nvalido -  comando: %s --- user %s", comando, argumento);
-			// lisel(argumento), i;
+			// lisel(argumento, i);
 			return 1;
 		}
 		else if (strcmp(comando, "litime") == 0)
@@ -245,6 +247,14 @@ int leComandosCliente(char *comando, item *i)
 
 			printf("\nvalido -  comando: %s --- precoMAx %d", comando, atoi(argumento));
 			lival(valor, i);
+			return 1;
+		}
+		else if (strcmp(comando, "add") == 0)
+		{
+			int value = atoi(argumento);
+			updateUserBalance(mensagem.nome, value);
+			printf("SAldo: %d", getUserBalance(mensagem.nome));
+
 			return 1;
 		}
 		else
@@ -266,11 +276,13 @@ int leComandosCliente(char *comando, item *i)
 		break;
 
 	case 5:
-		sscanf(aux, "%s %s %s %s %s %s", comando, nome, categoria, preco, compreJa, duracao);
+
+		sscanf(aux, "%s %s %s %d %d %d", comando, nome, categoria, &preco, &compreJa, &duracao);
 
 		if (strcmp(comando, "sell") == 0)
 		{
-			printf("\n valido \n comado: %s \n nome: %s \ncatg: %s \npreco: %d \n compreJ: %d\n tempo: %d\n", comando, nome, categoria, atoi(preco), atoi(compreJa), atoi(duracao));
+			printf("\n valido \n comado: %s \n nome: %s \ncatg: %s \npreco: %d \n compreJ: %d\n tempo: %d\n", comando, nome, categoria, preco, compreJa, duracao);
+			adicionaItem(i, nome, 2, categoria, preco, compreJa, duracao);
 			return 1;
 		}
 		else
@@ -284,24 +296,9 @@ int leComandosCliente(char *comando, item *i)
 	}
 }
 
-typedef struct
-{
-	pid_t pid;
-	char nome[100];
-	char pass[100];
-	char com[100];
-} dataMsg;
-
-typedef struct
-{
-	pid_t pidB;
-	int res;
-	item *i;
-} dataRPL;
-
 void handler_sinal(int signal, siginfo_t *info, void *extra)
 {
-	
+
 	printf("\n\nDESCONECTADO");
 	unlink(CLIENT_FIFO_FINAL);
 	exit(1);
@@ -311,7 +308,7 @@ int main(int argc, char *argv[])
 {
 
 	if (argc == 3)
-	{
+	{	
 		dataMsg mensagem;
 		dataRPL resposta;
 		mensagem.pid = getpid();
@@ -357,15 +354,18 @@ int main(int argc, char *argv[])
 		int aux;
 		if (resposta.res == 1)
 		{
+
 			resposta.i = malloc(sizeof(item));
+			//leFicheiroItem(FITEM, i);
+
 			char comando[20];
 			printf("Bem vindo %s!\n", argv[1]);
 			do
 			{
-			
+
 				printf("\n>>Deseja testar que comando?");
 				fgets(comando, 200, stdin);
-				aux = leComandosCliente(comando, resposta.i);
+				aux = leComandosCliente(comando, resposta.i, mensagem);
 
 				// se sair manda info ao backend
 				if (strcmp(comando, "exit") == 0)

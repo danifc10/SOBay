@@ -16,4 +16,7 @@ struct Utilizador{
 	int pid;
 };
 
+user *a;
+int user_len;
+
 #endif

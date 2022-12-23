@@ -13,7 +13,7 @@ struct Item{
 	int tempo;
 	struct Item *prox;
 };
-
+item *i;
 void mostraItem(item *i);
 void licat(char *ctg, item *i);
 void lisel(char *nome,  item *i);
