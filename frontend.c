@@ -18,7 +18,8 @@
 #define HEARTBEAT 4
 char CLIENT_FIFO_FINAL[100];
 
-
+dataMsg mensagem;
+dataRPL resposta;
 void adicionaItem(item *i, char *n, int id, char *ctg, int vb, int cj, int tmp)
 {
 	item *new = malloc(sizeof(item));
@@ -303,14 +304,18 @@ void handler_sinal(int signal, siginfo_t *info, void *extra)
 	unlink(CLIENT_FIFO_FINAL);
 	exit(1);
 }
+void handler_alarm(int num){
+	printf("passei aqui\n");
+	int fd_envio = open(BACKEND_FIFO, O_WRONLY);
+	int size = write(fd_envio, &mensagem, sizeof(mensagem));
+	close(fd_envio);
+	alarm(5);
+}
 
 int main(int argc, char *argv[])
 {
-
 	if (argc == 3)
 	{	
-		dataMsg mensagem;
-		dataRPL resposta;
 		mensagem.pid = getpid();
 		int fd_envio, fd_resposta;
 
@@ -355,14 +360,20 @@ int main(int argc, char *argv[])
 		if (resposta.res == 1)
 		{
 
-			resposta.i = malloc(sizeof(item));
+			//resposta.i = malloc(sizeof(item));
 			//leFicheiroItem(FITEM, i);
 
 			char comando[20];
 			printf("Bem vindo %s!\n", argv[1]);
+			int p= fork();
+			if(p<0){
+				exit(1);
+			}else if(p==0){
+				signal(SIGALRM,handler_alarm);
+				alarm(5);
+			}
 			do
 			{
-
 				printf("\n>>Deseja testar que comando?");
 				fgets(comando, 200, stdin);
 				aux = leComandosCliente(comando, resposta.i, mensagem);
@@ -378,6 +389,7 @@ int main(int argc, char *argv[])
 					unlink(CLIENT_FIFO_FINAL);
 					exit(1);
 				}
+
 
 			} while (aux != 0);
 		}

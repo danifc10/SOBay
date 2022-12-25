@@ -14,6 +14,7 @@ struct Utilizador{
 	int nItem;
 	int saldo;
 	int pid;
+	int TempoVida;
 };
 
 user *a;

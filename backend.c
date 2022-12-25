@@ -233,6 +233,7 @@ user *addUser(user *a, int tam, char *nome, int pid)
 	strcpy(a[tam - 1].nome, nome);
 	a[tam - 1].saldo = 0;
 	a[tam - 1].pid = pid;
+	a[tam-1].TempoVida=atoi(getenv("HEARTBEAT"));
 	return a;
 }
 
@@ -307,9 +308,21 @@ int leComandosAdmin(char *comando, user *a, int contaUsers, item *i)
 		return contaUsers;
 	}
 }
+void AwayFromKeyboard(user *a,char nome[],int tam){
+	for(int i = 0;i<tam;i++){
+		a[i].TempoVida=a[i].TempoVida-1;
+	}
+	for(int i = 0;i<tam;i++){
+		
+			if(a[i].TempoVida<=0){
+				eliminaUser(a,nome,tam);
+			}
+			break;
+		
+	}
+}
 
-
-void sair(int s)
+void sair(int s,siginfo_t *i , void *v)
 {
 	fechaFrontends(a, user_len);
 	unlink(BACKEND_FIFO);
@@ -318,6 +331,7 @@ void sair(int s)
 
 int main()
 {
+	setenv("HEARTBEAT","20",0);
 	dataMsg mensagemRecebida;
 	dataRPL resposta;
 	int fdRecebe, fdEnvio;
@@ -400,7 +414,8 @@ int main()
 						a = addUser(a, contaUsers, mensagemRecebida.nome, mensagemRecebida.pid);
 					}
 					else
-					{
+					{	
+						AwayFromKeyboard(a,mensagemRecebida.nome,user_len);
 						resposta.res = 0;
 					}
 					sprintf(CLIENT_FIFO_FINAL, CLIENT_FIFO, mensagemRecebida.pid);
