@@ -16,134 +16,40 @@
 #include <sys/select.h>
 #include "utils.h"
 
-#define FPROMOTORES "ficheiro_promotores.txt"
-#define BACKEND_FIFO "BACKEND"
-#define CLIENT_FIFO "CLIENTE%d"
-#define TAM 20
-char CLIENT_FIFO_FINAL[100];
+#define MAXPROM 10
 
-int utilizadores_len;
 
-void mostraItem(item *i)
-{
-	item *aux;
-	aux = i->prox;
-	while (aux != NULL)
-	{
-		printf("\n\nID: %d\n", aux->id);
-		printf("Nome: %s\n", aux->nome);
-		printf("Catg: %s\n", aux->categoria);
-		printf("ValorBase: %d\n", aux->valor_base);
-		printf("CompraJa: %d\n", aux->compra_ja);
-		printf("Tempo: %d\n", aux->tempo);
-
-		aux = aux->prox;
-	}
-}
-
-void adicionaItem(item *i, char *n, int id, char *ctg, int vb, int cj, int tmp)
-{
-	item *new = malloc(sizeof(item));
-	new->id = id;
-	strcpy(new->categoria, ctg);
-	strcpy(new->nome, n);
-	new->tempo = tmp;
-	new->compra_ja = cj;
-	new->valor_base = vb;
-
-	new->prox = NULL;
-	if (i->prox == NULL)
-	{
-		i->prox = new;
-	}
-	else
-	{
-		item *aux = i->prox;
-		while (aux->prox != NULL)
-		{
-			aux = aux->prox;
-			aux->prox = new;
-		}
-	}
-}
-
-void leFicheiroItem(char *nomeFich, item *i)
-{
-	FILE *f;
-	char Linha[100];
-
-	f = fopen(nomeFich, "rt");
-
-	if (f == NULL)
-	{
-		printf("ERRO");
-		fclose(f);
-		return;
-	}
-
-	while (!feof(f))
-	{
-
-		char nome[100], categoria[100], nomeU[100], licitador[100];
-		int id, valor_base, compra_ja, tempo;
-
-		fgets(Linha, 100, f);
-		sscanf(Linha, "%d %s %s %d %d %d %s %s", &id, &nome, &categoria, &valor_base, &compra_ja, &tempo, &nomeU, &licitador);
-
-		adicionaItem(i, nome, id, categoria, valor_base, compra_ja, tempo);
-		i = i->prox;
-	}
-
-	fclose(f);
-}
-
-void recebePromotor(int fd_p2b[2])
+char *recebePromotor(int fd_p2b[2])
 {
 	printf("entrei recebe\n");
 	char msg[100];
 	read(fd_p2b[0], msg, 100);
-	printf("Msg:%s", msg);
-	//return strtok(msg, "\n");
+	return strtok(msg, "\n");
 }
 
-int executaPromotor(int fd_p2b[2], char *PromsName, int count)
+int executaPromotor(int fd_p2b[2], char *PromsName)
 {
 	int f = fork();
-	printf("entrei executa\n");
+	char output[100];
+	printf("entrei executa");
 	if (f == -1)
 	{
 		printf("ERRO: %s\n", getLastErrorText());
 	}
 	else if (f == 0)
 	{
-		char PromsExec[TAM];
-		strcpy(PromsExec, PromsName);
-		close(1);
+		// close(1);
 		dup(fd_p2b[1]);
 		close(fd_p2b[0]);
 		close(fd_p2b[1]);
 
-		for (int i = 0; i < count + 2; i++)
-		{
-			PromsName[i + 1] = PromsName[i];
-			if (i == 0)
-			{
-				PromsName[i] = '.';
-			}
-			else if (i == 1)
-			{
-				PromsName[i] = '/';
-			}
-		}
-		int erro = execl(PromsName, PromsExec, NULL);
-		if(erro ==-1){
-			printf("erro %s", errno);
-		}
-		recebePromotor(fd_p2b);
+		// printf("nome :: %s", PromsName);
+		execlp(PromsName, PromsName, NULL);
+		strcpy(output, recebePromotor(fd_p2b));
+		printf("msg: %s", output);
 	}
 	return f;
 }
-
 
 int leProms(char *nomeFich, char *PromsName[TAM], int fd[2])
 {
@@ -164,7 +70,8 @@ int leProms(char *nomeFich, char *PromsName[TAM], int fd[2])
 		PromsName[i] = malloc(30);
 		fgets(Linha, 100, f);
 		sscanf(Linha, "%s", PromsName[i]);
-		executaPromotor(fd, PromsName[i], strlen(PromsName[i]));
+		executaPromotor(fd, PromsName[i]);
+		sleep(5);
 		i++;
 	}
 
@@ -180,12 +87,11 @@ void mostraProms(char *PromsName[TAM], int count)
 	}
 }
 
-
 void userscmd(user *a, int tam)
 {
 	for (int i = 0; i < tam; i++)
 	{
-		printf("User %d: %s\n",i+1, a[i].nome);
+		printf("User %d: %s\n", i + 1, a[i].nome);
 	}
 }
 int eliminaUser(user *a, char *nome, int tam)
@@ -216,8 +122,9 @@ void fechaFrontends(user *a, int tam)
 	}
 }
 
+// 0 se nao existe 1 se existe
 int existe(user *a, int tamanho, char *nome)
-{ // 0 se nao existe 1 se existe
+{
 	for (int i = 0; i < tamanho; i++)
 	{
 		if (strcmp(a[i].nome, nome) == 0)
@@ -233,16 +140,15 @@ user *addUser(user *a, int tam, char *nome, int pid)
 	strcpy(a[tam - 1].nome, nome);
 	a[tam - 1].saldo = 0;
 	a[tam - 1].pid = pid;
-	a[tam-1].TempoVida=atoi(getenv("HEARTBEAT"));
+	a[tam - 1].TempoVida = atoi(getenv("HEARTBEAT"));
 	return a;
 }
 
-int leComandosAdmin(char *comando, user *a, int contaUsers, item *i)
+int leComandosAdmin(char *comando, user *a, int contaUsers, item *i, int item_len)
 {
 	char aux[100];
 	char argumento[20];
 	int count = 0;
-	dataRPL u;
 
 	for (int i = 0; i < strlen(comando) - 1; i++)
 	{
@@ -262,14 +168,14 @@ int leComandosAdmin(char *comando, user *a, int contaUsers, item *i)
 		if (strcmp(comando, "list") == 0)
 		{
 			printf("--------------------ITEMS---------------------\n");
-			mostraItem(i);
+			mostraItem(i, item_len);
 			printf("Comando Valido!\n");
 		}
 		else if (strcmp(comando, "users") == 0)
 		{
 			printf("--------------------USERS---------------------\n");
 			userscmd(a, contaUsers);
-		
+
 			printf("Comando Valido!\n");
 		}
 		else if (strcmp(comando, "prom") == 0)
@@ -283,6 +189,7 @@ int leComandosAdmin(char *comando, user *a, int contaUsers, item *i)
 		else if (strcmp(comando, "close") == 0)
 		{
 			fechaFrontends(a, contaUsers);
+			saveUsersFile(USER_FILENAME);
 			union sigval xpto;
 			sigqueue(getpid(), SIGINT, xpto);
 			printf("Comando Valido!\n");
@@ -295,7 +202,7 @@ int leComandosAdmin(char *comando, user *a, int contaUsers, item *i)
 		if (strcmp(comando, "kick") == 0)
 		{
 			contaUsers = eliminaUser(a, argumento, contaUsers);
-			printf("User %s expulsado!\n", argumento);
+			printf(">> User %s expulso!\n", argumento);
 		}
 		else if (strcmp(comando, "cancel") == 0)
 		{
@@ -308,21 +215,22 @@ int leComandosAdmin(char *comando, user *a, int contaUsers, item *i)
 		return contaUsers;
 	}
 }
+/*
 void AwayFromKeyboard(user *a,char nome[],int tam){
 	for(int i = 0;i<tam;i++){
 		a[i].TempoVida=a[i].TempoVida-1;
 	}
 	for(int i = 0;i<tam;i++){
-		
+
 			if(a[i].TempoVida<=0){
 				eliminaUser(a,nome,tam);
 			}
 			break;
-		
-	}
-}
 
-void sair(int s,siginfo_t *i , void *v)
+	}
+}*/
+
+void sair(int s, siginfo_t *i, void *v)
 {
 	fechaFrontends(a, user_len);
 	unlink(BACKEND_FIFO);
@@ -331,19 +239,13 @@ void sair(int s,siginfo_t *i , void *v)
 
 int main()
 {
-	setenv("HEARTBEAT","20",0);
+	setenv("HEARTBEAT", "20", 0);
 	dataMsg mensagemRecebida;
 	dataRPL resposta;
 	int fdRecebe, fdEnvio;
-	
-	resposta.pidB = getpid();
-	resposta.i = malloc(sizeof(item));
-	/*----------------------------------- LEITURA DE FICHEIROS DE TEXTO ------------------------------------*/
-	leFicheiroItem(FITEM, resposta.i);
-	i = resposta.i;
-	user_len = loadUsersFile(USER_FILENAME);
-	a = (user *)malloc(user_len * sizeof(user));
-	/*------------------------------------------------------------------------------------------------------*/
+	char *Proms[MAXPROM];
+	char output[100];
+
 	struct sigaction sac;
 	sac.sa_sigaction = sair;
 	sigaction(SIGINT, &sac, NULL);
@@ -359,8 +261,39 @@ int main()
 		return 1;
 	}
 
+	resposta.pidB = getpid();
+	int item_len = contaItems(FITEM);
+	item *i;
+	i = (item *)malloc(item_len * sizeof(item));
+	i = leFicheiroItem(FITEM, i);
+
+	/*----------------------------------- LEITURA DE FICHEIROS DE TEXTO ------------------------------------*/
+
+	user_len = loadUsersFile(USER_FILENAME);
+	a = (user *)malloc(user_len * sizeof(user));
+	resposta.itam = item_len;
+	resposta.uTam =  user_len;
+
+	// strcpy(output, recebePromotor(fd_p2b));
+	// printf("\nmsg:%s\n", output);
+	/*------------------------------------------------------------------------------------------------------*/
+	/*
+		// criar 2 unnamed pipes
+		int fd_p2b[2];
+		// pipes
+		int Rpipe = pipe(fd_p2b);
+
+		if (Rpipe == -1)
+		{
+			printf("erro ao criar pipe\n");
+			exit(1);
+		}
+
+		int countProms = leProms(FPROMOTORES, Proms, fd_p2b);*/
+
 	printf("\n...\n");
 	fdRecebe = open(BACKEND_FIFO, O_RDONLY);
+
 	if (fdRecebe == -1)
 	{
 		printf(">> Erro ao abrir o backend");
@@ -388,7 +321,7 @@ int main()
 		if (FD_ISSET(0, &read_fds))
 		{
 			fgets(buffer, sizeof(buffer), stdin);
-			contaUsers = leComandosAdmin(buffer, a, contaUsers, i);
+			contaUsers = leComandosAdmin(buffer, a, contaUsers, i, item_len);
 		}
 		if (FD_ISSET(fdRecebe, &read_fds))
 		{
@@ -399,6 +332,11 @@ int main()
 				{
 					// so entra aqui quando user saiu com "exit"
 					printf("\n>> User %s saiu!\n", mensagemRecebida.nome);
+					contaUsers = eliminaUser(a, mensagemRecebida.nome, contaUsers);
+				}
+				else if (mensagemRecebida.sair == 1)
+				{
+					printf("\n>> User %s saiu sem avisar!\n", mensagemRecebida.nome);
 					contaUsers = eliminaUser(a, mensagemRecebida.nome, contaUsers);
 				}
 				else
@@ -414,22 +352,29 @@ int main()
 						a = addUser(a, contaUsers, mensagemRecebida.nome, mensagemRecebida.pid);
 					}
 					else
-					{	
-						AwayFromKeyboard(a,mensagemRecebida.nome,user_len);
+					{
+						// AwayFromKeyboard(a,mensagemRecebida.nome,user_len);
 						resposta.res = 0;
 					}
 					sprintf(CLIENT_FIFO_FINAL, CLIENT_FIFO, mensagemRecebida.pid);
 					fdEnvio = open(CLIENT_FIFO_FINAL, O_WRONLY);
-					int size2 = write(fdEnvio, &resposta, sizeof(resposta));
+					write(fdEnvio, &resposta, sizeof(resposta));
+					for (int j = 0; j < item_len; j++)
+					{
+						write(fdEnvio, &i[j], sizeof(item));
+					}
+					for (int j = 0; j < item_len; j++)
+					{
+						write(fdEnvio, &a[j], sizeof(user));
+					}
 					close(fdEnvio);
+
 				}
 			}
 		}
 
 	} while (1);
-    
 
-	
 	//--------------------------------------------
 	//--------------------------------------------
 	/*
