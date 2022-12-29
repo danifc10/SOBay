@@ -1,11 +1,10 @@
 #include "item.h"
 
-
 void mostraItem(item *i, int tam)
 {
 	for (int j = 0; j < tam; j++)
 	{
-		printf("ITEM %d :\n", j);
+		printf("ITEM %d :\n", j+1);
 		printf("Nome:%s Id:%d Catg.:%s Valor:%d CompraJa:%d Dono:%s Tempo:%d\n\n ", i[j].nome, i[j].id, i[j].categoria, i[j].valor_base, i[j].compra_ja, i[j].dono, i[j].tempo);
 	}
 }
@@ -116,17 +115,40 @@ void litime(int time, item *i, int item_len)
 	}
 }
 // 1 s eelimindao 0 se erro
-int eliminaItem(int id, item *i, int item_len){
-	for(int j =0; j < item_len; j++){		
-
-		if(i[j].id == id){
-			for(int a  = j; a < item_len-1;  a++){
-				i[j]=i[j+1];
-			}
-			--item_len;
-			return 1;
+item * eliminaItem(int id, item *i, int item_len){
+	for (int j = 0; j < item_len; j++)
+	{
+		if (i[j].id == id)
+		{
+			for (int p = j; p < item_len - 1; p++)
+				i[p] = i[p + 1];
+			break;
 		}
 	}
-	return 0;
+	--item_len;
+	if (item_len == 0)
+	{
+		free(i);
+		return NULL;
+	}
+	i = (item *)realloc(i, sizeof(item) * item_len);
+	if (i == NULL)
+	{
+		printf("error allocating memory\n");
+		exit(1);
+	}
+	return i;
 }
 
+int compraItem(item *i, int id, int valor, char *nome, int saldo, int item_len){
+	for(int j = 0; j < item_len ;j++){
+		if(i[j].id == id){
+			if((valor >= i[j].valor_base )&&( valor <= saldo)){
+				//eliminaItem(id, i, item_len);
+				return 1;
+			}else{
+				return 0;
+			}
+		}
+	}
+}

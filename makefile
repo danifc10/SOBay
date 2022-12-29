@@ -1,10 +1,7 @@
-all: backend frontend
+all:
+	gcc backend.c util.h item.h item.c users_lib.h users_lib.o -o backend -pthread
+	gcc frontend.c item.h item.c -o frontend
 
-backend: backend.c
-	gcc backend.c item.c users_lib.h users_lib.o -o backend
-
-frontend: frontend.c
-	gcc frontend.c item.c users_lib.h users_lib.o -o frontend
-
-clean: 
-	rm backend frontend
+clean:
+	rm servidor
+	rm cliente

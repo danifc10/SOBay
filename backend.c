@@ -1,106 +1,52 @@
-#include <stdio.h>
+#include "util.h"
 #include "item.h"
-#include <string.h>
-#include <stdlib.h>
-#include <ctype.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <sys/types.h>
-#include <unistd.h>
-#include <signal.h>
-#include <sys/stat.h>
-#include "user.h"
 #include "users_lib.h"
-#include <errno.h>
-#include <pthread.h>
-#include <sys/select.h>
-#include "utils.h"
 
-#define MAXPROM 10
-
-
-char *recebePromotor(int fd_p2b[2])
+typedef struct user
 {
-	printf("entrei recebe\n");
-	char msg[100];
-	read(fd_p2b[0], msg, 100);
-	return strtok(msg, "\n");
+	char nome[100];
+	char password[100];
+	int nItem;
+	int saldo;
+	pid_t pid;
+} user;
+
+typedef struct clients
+{
+	user *users;
+	int tam;
+	int file;
+	pthread_mutex_t *mutex;
+} clients;
+
+// Global Var
+static int signal_exit = 0;
+item *i;
+int item_len;
+user *u = NULL;
+int user_len;
+
+void signal_handler(int sig)
+{
+	signal_exit = 1;
 }
 
-int executaPromotor(int fd_p2b[2], char *PromsName)
+user *addUser(user *a, int tam, char *nome, pid_t user_pid)
 {
-	int f = fork();
-	char output[100];
-	printf("entrei executa");
-	if (f == -1)
-	{
-		printf("ERRO: %s\n", getLastErrorText());
-	}
-	else if (f == 0)
-	{
-		// close(1);
-		dup(fd_p2b[1]);
-		close(fd_p2b[0]);
-		close(fd_p2b[1]);
-
-		// printf("nome :: %s", PromsName);
-		execlp(PromsName, PromsName, NULL);
-		strcpy(output, recebePromotor(fd_p2b));
-		printf("msg: %s", output);
-	}
-	return f;
+	strcpy(u[tam].nome, nome);
+	u[tam].saldo = 0;
+	u[tam].pid = user_pid;
+	u[tam].nItem = 0;
+	++(tam);
+	return u;
 }
 
-int leProms(char *nomeFich, char *PromsName[TAM], int fd[2])
-{
-	FILE *f;
-	char Linha[100];
-
-	f = fopen(nomeFich, "rt");
-
-	if (f == NULL)
-	{
-		printf("ERRO");
-		fclose(f);
-		return 0;
-	}
-	int i = 0;
-	while (!feof(f))
-	{
-		PromsName[i] = malloc(30);
-		fgets(Linha, 100, f);
-		sscanf(Linha, "%s", PromsName[i]);
-		executaPromotor(fd, PromsName[i]);
-		sleep(5);
-		i++;
-	}
-
-	fclose(f);
-	return i;
-}
-
-void mostraProms(char *PromsName[TAM], int count)
-{
-	for (int i = 0; i < count; i++)
-	{
-		printf("\nnome: %s \n", PromsName[i]);
-	}
-}
-
-void userscmd(user *a, int tam)
+int eliminaUser(user *a, int tam, pid_t pid)
 {
 	for (int i = 0; i < tam; i++)
 	{
-		printf("User %d: %s\n", i + 1, a[i].nome);
-	}
-}
-int eliminaUser(user *a, char *nome, int tam)
-{
-	for (int i = 0; i < tam; i++)
-	{
-		if (strcmp(a[i].nome, nome) == 0)
+		if (a[i].pid == pid)
 		{
-			kill(a[i].pid, SIGUSR1);
 			for (int j = i; j < tam - 1; j++)
 			{
 				a[j] = a[j + 1];
@@ -111,427 +57,348 @@ int eliminaUser(user *a, char *nome, int tam)
 	return tam;
 }
 
-void fechaFrontends(user *a, int tam)
+void showClients(user *u, int tam)
 {
 	for (int i = 0; i < tam; i++)
 	{
-		if (a[i].pid != 0 && strcmp(a[i].nome, "") != 0)
-		{
-			kill(a[i].pid, SIGUSR1);
-		}
+		printf("Pid:%d\tNome:%s\tSaldo:%d\n", u[i].pid, u[i].nome, u[i].saldo);
 	}
 }
 
-// 0 se nao existe 1 se existe
-int existe(user *a, int tamanho, char *nome)
+int kick_cmd(user *u, int tam, char *nome)
 {
-	for (int i = 0; i < tamanho; i++)
+	for (int i = 0; i < tam; i++)
 	{
-		if (strcmp(a[i].nome, nome) == 0)
+		if (!strcmp(u[i].nome, nome))
 		{
+			kill(u[i].pid, SIGINT);
 			return 1;
 		}
 	}
 	return 0;
 }
 
-user *addUser(user *a, int tam, char *nome, int pid)
+// 1 se existir, 0 se nao
+int exist(user *u, int tam, char *nome)
 {
-	strcpy(a[tam - 1].nome, nome);
-	a[tam - 1].saldo = 0;
-	a[tam - 1].pid = pid;
-	a[tam - 1].TempoVida = atoi(getenv("HEARTBEAT"));
-	return a;
+	for (int j = 0; j < tam; j++)
+	{
+		if (strcmp(u[j].nome, nome) == 0)
+		{
+			return 1;
+		}
+	}
+	return 0;
+}
+void closeFrontends(user *u, int tam)
+{
+	union sigval val;
+	for (int j = 0; j < tam; j++)
+	{
+		sigqueue(u[j].pid, SIGINT, val);
+	}
 }
 
-int leComandosAdmin(char *comando, user *a, int contaUsers, item *i, int item_len)
-{
-	char aux[100];
-	char argumento[20];
-	int count = 0;
-
-	for (int i = 0; i < strlen(comando) - 1; i++)
-	{
-		if (isspace(comando[i]))
-		{
-			count++;
+user* getClient(user* u, int tam, pid_t pid){
+	for(int i = 0; i < tam; ++i)
+		if(u[i].pid == pid){
+			return u+i;
 		}
-	}
-
-	strcpy(aux, comando);
-
-	switch (count)
-	{
-	case 0:
-		sscanf(aux, "%s", comando);
-
-		if (strcmp(comando, "list") == 0)
-		{
-			printf("--------------------ITEMS---------------------\n");
-			mostraItem(i, item_len);
-			printf("Comando Valido!\n");
-		}
-		else if (strcmp(comando, "users") == 0)
-		{
-			printf("--------------------USERS---------------------\n");
-			userscmd(a, contaUsers);
-
-			printf("Comando Valido!\n");
-		}
-		else if (strcmp(comando, "prom") == 0)
-		{
-			printf("Comando Valido!\n");
-		}
-		else if (strcmp(comando, "reprom") == 0)
-		{
-			printf("Comando Valido!\n");
-		}
-		else if (strcmp(comando, "close") == 0)
-		{
-			fechaFrontends(a, contaUsers);
-			saveUsersFile(USER_FILENAME);
-			union sigval xpto;
-			sigqueue(getpid(), SIGINT, xpto);
-			printf("Comando Valido!\n");
-		}
-		return contaUsers;
-
-	case 1:
-
-		sscanf(aux, "%s %s", comando, argumento);
-		if (strcmp(comando, "kick") == 0)
-		{
-			contaUsers = eliminaUser(a, argumento, contaUsers);
-			printf(">> User %s expulso!\n", argumento);
-		}
-		else if (strcmp(comando, "cancel") == 0)
-		{
-			printf("Comando Valido!\n");
-		}
-		return contaUsers;
-
-	default:
-		printf("Comando Invalido!\n");
-		return contaUsers;
-	}
 }
-/*
-void AwayFromKeyboard(user *a,char nome[],int tam){
-	for(int i = 0;i<tam;i++){
-		a[i].TempoVida=a[i].TempoVida-1;
-	}
-	for(int i = 0;i<tam;i++){
 
-			if(a[i].TempoVida<=0){
-				eliminaUser(a,nome,tam);
+int atualizaSaldo(user *u, int tam, pid_t pid, int value){
+	for(int i = 0; i < tam; i++){
+		if(u[i].pid == pid){
+			u[i].saldo = value;
+			return 1;
+		}
+	}
+	return 0;
+}
+
+int getSaldo(user *u, int tam, pid_t pid){
+	for(int i = 0; i < tam; i++){
+		if(u[i].pid == pid){
+			return u[i].saldo;
+		}
+	}
+	return 0;
+}
+
+void *answer_clients(void *data)
+{
+	clients *cli = (clients *)data;
+
+	cli->file = loadUsersFile(FUSERS);
+	u = (user *)malloc(sizeof(user) * (cli->file));
+
+	item_len = contaItems(FITEM);
+	i = (item *)malloc(item_len * sizeof(item));
+	i = leFicheiroItem(FITEM, i);
+
+	int res = access(PIPE_SERVER, F_OK);
+	if (res != 0)
+	{
+		res = mkfifo(PIPE_SERVER, 0666);
+		if (res != 0)
+		{
+			printf("error creating the fifo %s", PIPE_SERVER);
+			exit(1);
+		}
+	}
+
+	int fd = open(PIPE_SERVER, O_RDWR);
+	if (fd == -1)
+	{
+		printf("error opening the pipe %s", PIPE_SERVER);
+		exit(1);
+	}
+
+	int n, fc, buy = 0;
+	request r;
+	response resp;
+	
+	char pipe[PIPE_SIZE];
+	pthread_mutex_lock(cli->mutex);
+
+	while ((n = read(fd, &r, sizeof(request))))
+	{
+		if (!n || signal_exit)
+		{
+			close(fd);
+			closeFrontends(u, cli->tam);
+			unlink(PIPE_SERVER);
+			pthread_exit(NULL);
+		}
+		else if (n != sizeof(request))
+		{
+
+			printf("errro a ler msg\n");
+			exit(1);
+		}
+
+		int valido = 0;
+		switch (r.request_type)
+		{
+		case ENTRADA:
+			valido = isUserValid(r.a.nome, r.a.pass);
+			if (valido == 1)
+			{
+				int val = exist(u, cli->tam, r.a.nome);
+				if (val){
+					resp.valido = 0;
+					resp.res = FAILURE;
+				}
+				else{
+					u = addUser(u, cli->tam, r.a.nome, r.pid);
+					cli->tam += 1;
+					resp.valido = 1;
+					resp.res = SUCCESS;
+				}
+			}
+			else
+			{
+				resp.valido = 0;
+				resp.res = FAILURE;
 			}
 			break;
+		case CASH:
+			resp.res = SUCCESS;
+			resp.value = getSaldo(u, cli->tam, r.pid);
+			break;
+		case ADD:
+			n = atualizaSaldo(u, cli->tam, r.pid, r.add.value);
+			if(n){
+				resp.res = SUCCESS;
+			}else{
+				resp.res = FAILURE;
+			}
+			break;
+		case BUY:
+			resp.res = SUCCESS;
+			int s = compraItem(i, r.buy.id, r.buy.value, u->nome, u->saldo, item_len);
+			if (s == 1)
+			{
+				resp.res = SUCCESS;
+				i = eliminaItem(r.buy.id, i, item_len);
+				--item_len;
+				r.request_type = LIST;
+				break;
+			}
+			else
+			{
+				resp.res = FAILURE;
+				r.request_type = LIST;
+			}
+			break;
+		case SELL:
+			resp.res = SUCCESS;
+			break;
+		case TIME:
+			resp.res = SUCCESS;
+			break;
+		case LISEL:
+			resp.res = SUCCESS;
+			break;
+		case LIVAL:
+			resp.res = SUCCESS;
+			break;
+		case LITIME:
+			resp.res = SUCCESS;
+			break;
+		case LIST:
+			resp.res = SUCCESS;
+			break;
+		case LICAT:
+			resp.res = SUCCESS;
+			break;
+		case EXIT:
+			u = getClient(u, cli->tam, r.pid);
+			printf("\nCliente %d saiu!\n", r.pid);
+			cli->tam = eliminaUser(u, cli->tam, r.pid);
+			break;
+		default:
+			printf("tipo de pedido invalido\n");
+			resp.res = FAILURE;
+			break;
+		}
 
+		pthread_mutex_unlock(cli->mutex);
+
+		if (r.request_type == LIST)
+		{
+			sprintf(pipe, PIPE_CLIENT, r.pid);
+			fc = open(pipe, O_WRONLY);
+			if (fc == -1)
+			{
+				printf("error ao abrir pipe cliente\n");
+				exit(1);
+			}
+			for (int j = 0; j < item_len; j++)
+			{
+				write(fc, &i[j], sizeof(item));
+			}
+
+			close(fc);
+		}
+		else if (r.request_type != EXIT)
+		{
+			sprintf(pipe, PIPE_CLIENT, r.pid);
+			fc = open(pipe, O_WRONLY);
+			if (fc == -1)
+			{
+				printf("error ao abrir pipe cliente\n");
+				exit(1);
+			}
+			write(fc, &resp, sizeof(response));
+			close(fc);
+		}
 	}
-}*/
-
-void sair(int s, siginfo_t *i, void *v)
-{
-	fechaFrontends(a, user_len);
-	unlink(BACKEND_FIFO);
-	exit(1);
 }
 
 int main()
 {
-	setenv("HEARTBEAT", "20", 0);
-	dataMsg mensagemRecebida;
-	dataRPL resposta;
-	int fdRecebe, fdEnvio;
-	char *Proms[MAXPROM];
-	char output[100];
 
-	struct sigaction sac;
-	sac.sa_sigaction = sair;
-	sigaction(SIGINT, &sac, NULL);
+	setbuf(stdout, NULL);
+	char *cmd = NULL;
+	size_t n_chars, cmd_size;
+	char cmd_request[100];
+	char arg[100];
 
-	if (mkfifo(BACKEND_FIFO, 0666) == -1)
+	struct sigaction sa;
+
+	sa.sa_handler = signal_handler;
+	sa.sa_flags = SA_SIGINFO;
+	sigaction(SIGUSR1, &sa, NULL);
+	sigaction(SIGINT, &sa, NULL);
+
+	pthread_mutex_t mutex;
+	int res = pthread_mutex_init(&mutex, NULL);
+	if (res != 0)
 	{
-
-		if (errno == EEXIST)
-		{
-			printf("\nfifo ja existe\n");
-		}
-		printf("erro ao abrir fifo\n");
-		return 1;
+		printf("error ao inicializar mutex\n");
+		exit(1);
 	}
 
-	resposta.pidB = getpid();
-	int item_len = contaItems(FITEM);
-	item *i;
-	i = (item *)malloc(item_len * sizeof(item));
-	i = leFicheiroItem(FITEM, i);
+	clients cli = {NULL, 0, 0, &mutex};
 
-	/*----------------------------------- LEITURA DE FICHEIROS DE TEXTO ------------------------------------*/
-
-	user_len = loadUsersFile(USER_FILENAME);
-	a = (user *)malloc(user_len * sizeof(user));
-	resposta.itam = item_len;
-	resposta.uTam =  user_len;
-
-	// strcpy(output, recebePromotor(fd_p2b));
-	// printf("\nmsg:%s\n", output);
-	/*------------------------------------------------------------------------------------------------------*/
-	/*
-		// criar 2 unnamed pipes
-		int fd_p2b[2];
-		// pipes
-		int Rpipe = pipe(fd_p2b);
-
-		if (Rpipe == -1)
-		{
-			printf("erro ao criar pipe\n");
-			exit(1);
-		}
-
-		int countProms = leProms(FPROMOTORES, Proms, fd_p2b);*/
-
-	printf("\n...\n");
-	fdRecebe = open(BACKEND_FIFO, O_RDONLY);
-
-	if (fdRecebe == -1)
+	pthread_t pipe_thread;
+	res = pthread_create(&pipe_thread, NULL, answer_clients, (void *)&cli);
+	if (res != 0)
 	{
-		printf(">> Erro ao abrir o backend");
-		return 1;
+		printf("error a criar thread");
+		exit(1);
 	}
 
-	int nfd;
-	fd_set read_fds;
-	struct timeval tv;
-	int maior = fdRecebe + 1; //  maior FD acrescido de 1
-	char buffer[100];
+	printf("Serv is running...\n");
 
-	int contaUsers = 0;
-
-	do
+	while (1)
 	{
-		FD_ZERO(&read_fds);
-		FD_SET(0, &read_fds);		 // incluir o stdin
-		FD_SET(fdRecebe, &read_fds); // incluir o fdRecebe (server_fifo)
-		tv.tv_sec = 5;
-		tv.tv_usec = 0;
-		// escutar stdin e fdRecebe
-		nfd = select(maior, &read_fds, NULL, NULL, &tv);
-		// escutar teclado
-		if (FD_ISSET(0, &read_fds))
+		printf("\n>>");
+		n_chars = getline(&cmd, &cmd_size, stdin);
+		cmd[n_chars - 1] = '\0';
+		sscanf(cmd, "%s", cmd_request);
+
+		if (!strcmp(cmd_request, "close") || signal_exit)
 		{
-			fgets(buffer, sizeof(buffer), stdin);
-			contaUsers = leComandosAdmin(buffer, a, contaUsers, i, item_len);
+			printf("Closing..\n");
+			break;
 		}
-		if (FD_ISSET(fdRecebe, &read_fds))
+		else if (!strcmp(cmd_request, "users"))
 		{
-			int size = read(fdRecebe, &mensagemRecebida, sizeof(mensagemRecebida));
-			if (size > 0)
+			if (cli.tam == 0)
 			{
-				if (strcmp(mensagemRecebida.com, "exit") == 0)
-				{
-					// so entra aqui quando user saiu com "exit"
-					printf("\n>> User %s saiu!\n", mensagemRecebida.nome);
-					contaUsers = eliminaUser(a, mensagemRecebida.nome, contaUsers);
-				}
-				else if (mensagemRecebida.sair == 1)
-				{
-					printf("\n>> User %s saiu sem avisar!\n", mensagemRecebida.nome);
-					contaUsers = eliminaUser(a, mensagemRecebida.nome, contaUsers);
-				}
-				else
-				{
-
-					int valido = isUserValid(mensagemRecebida.nome, mensagemRecebida.pass);
-					int aux = existe(a, contaUsers, mensagemRecebida.nome); // se ja estiver logado nao pode logar otv
-					if (aux == 0 && valido == 1)
-					{
-						printf("\n>> Utilizador: %s logado com pid %d\n", mensagemRecebida.nome, mensagemRecebida.pid);
-						resposta.res = 1;
-						++contaUsers;
-						a = addUser(a, contaUsers, mensagemRecebida.nome, mensagemRecebida.pid);
-					}
-					else
-					{
-						// AwayFromKeyboard(a,mensagemRecebida.nome,user_len);
-						resposta.res = 0;
-					}
-					sprintf(CLIENT_FIFO_FINAL, CLIENT_FIFO, mensagemRecebida.pid);
-					fdEnvio = open(CLIENT_FIFO_FINAL, O_WRONLY);
-					write(fdEnvio, &resposta, sizeof(resposta));
-					for (int j = 0; j < item_len; j++)
-					{
-						write(fdEnvio, &i[j], sizeof(item));
-					}
-					for (int j = 0; j < item_len; j++)
-					{
-						write(fdEnvio, &a[j], sizeof(user));
-					}
-					close(fdEnvio);
-
-				}
+				printf("Nao existem users logados\n");
+			}
+			else
+			{
+				showClients(u, cli.tam);
 			}
 		}
-
-	} while (1);
-
-	//--------------------------------------------
-	//--------------------------------------------
-	/*
-		char outputPromotores[100];
-		// maximo de promotores
-		int pid_promotor[10];
-
-		for (int i = 0; i < 10; i++)
+		else if (!strcmp(cmd_request, "list"))
 		{
-			pid_promotor[i] = 0;
-		}
-
-		// criar 2 unnamed pipes
-		int fd_p2b[2];
-		// pipes
-		int Rpipe = pipe(fd_p2b);
-
-		if (Rpipe == -1)
-		{
-			printf("erro ao criar pipe\n");
-			exit(1);
-		}
-		int pid;
-		int opcao;
-		union sigval valores;
-		char comando[20];
-		int aux = 0;
-		int estado;
-
-		do
-		{
-
-			printf("\n-------------Deseja testar que funcionalidade?-----------\n");
-			printf("\n1. Inserir Comando\n2. Executar promotor\n3. Utilizadores\n4. Ver items\n5. Sair\n>>");
-			scanf("%d", &opcao);
-			getchar();
-
-			switch (opcao)
+			if (item_len == 0)
 			{
-			case 1:
-				do
-				{
-					printf("\n\n>>Deseja testar que comando?\n");
-					fgets(comando, 200, stdin);
-					aux = leComandosAdmin(comando);
-
-				} while (aux != 0);
-				break;
-			case 2:
-				pid = executaPromotor(fd_p2b);
-				for (int i = 0; i < 10; i++)
-				{
-					if (pid_promotor[i] == 0)
-					{
-						pid_promotor[i] = pid;
-						break;
-					}
-				}
-
-				valores.sival_int = 1;
-
-				// tem que aparecer 3 promo antes de  terminar o processo;
-				for (int i = 0; i <= 2; i++)
-				{
-					strcpy(outputPromotores, recebePromotor(fd_p2b));
-					printf("\nmsg:%s\n", outputPromotores);
-					if (i == 2)
-					{
-						sigqueue(pid, SIGUSR1, valores); // fechar promotor
-					}
-				}
-				//wait(&estado);
-				//printf("%d\n",estado);
-				break;
-
-			case 3:
-				utilizadores_len = loadUsersFile(USER_FILENAME);
-				int opcaoUser = 0;
-				do
-				{
-
-					char nome[100];
-					char password[100];
-					int saldo;
-					printf("\n-----Utilizadores-----\n");
-					printf("--1.Atualizar saldo\n--2.Verificar user\n--3.Obter saldo\n--4. Voltar\n");
-					printf("\n\n>>");
-					scanf("%d", &opcaoUser);
-					getchar();
-
-					if (opcaoUser == 1)
-					{
-
-						printf("\nInsira um username:");
-						scanf("%s", &nome);
-						printf("\nNovo saldo:");
-						scanf("%d", &saldo);
-
-						if (updateUserBalance(nome, saldo) == -1)
-						{
-							getLastErrorText();
-						}
-						else
-						{
-							printf("\nSaldo atualizado com sucesso!\n");
-						}
-					}
-					else if (opcaoUser == 2)
-					{
-						printf("\nUsername:");
-						scanf("%s", &nome);
-						printf("\nPassword:");
-						scanf("%s", &password);
-
-						if (isUserValid(nome, password) == -1)
-						{
-							getLastErrorText();
-						}
-						else if (isUserValid(nome, password) == 1)
-						{
-							printf("\nUser valido!\n");
-						}
-						else if (isUserValid(nome, password) == 0)
-						{
-							printf("\nPassword errada ou user nao existe!\n");
-						}
-					}
-					else if (opcaoUser == 3)
-					{
-						printf("\nUsername:");
-						scanf("%s", &nome);
-						saldo = getUserBalance(nome);
-						if (saldo == -1)
-						{
-							getLastErrorText();
-						}
-						else
-						{
-							printf("\nSaldo: %d\n", saldo);
-						}
-					}
-					saveUsersFile(USER_FILENAME);
-				} while (opcaoUser != 4);
-				free(utilizadores);
-				break;
-			case 4:
-				mostraItem(resposta.i);
-				break;
-			case 5:
-				exit(1);
-				break;
-
-			default:
-				break;
+				printf("Nao existem items a leilao\n");
 			}
+			else
+			{
+				mostraItem(i, item_len);
+			}
+		}
+		else if (!strcmp(cmd_request, "kick"))
+		{
+			sscanf(cmd, "%s %s", cmd_request, &arg);
+			int n = kick_cmd(u, cli.tam, arg);
+		}
+		else
+		{
+			printf("invalid command\n");
+			continue;
+		}
+		strcpy(cmd, "");
+	}
 
-		} while (opcao != 5);
-	*/
-	return 0;
+	res = pthread_kill(pipe_thread, SIGUSR1);
+	if (res != 0)
+	{
+		printf("error ao enviar sinal para a thread");
+		exit(1);
+	}
+
+	res = pthread_join(pipe_thread, NULL);
+	if (res != 0)
+	{
+		printf("error ao esperar pela thread\n");
+		exit(1);
+	}
+
+	res = pthread_mutex_destroy(&mutex);
+	if (res != 0)
+	{
+		exit(1);
+	}
+
+	printf("Bye\n");
+	exit(0);
 }

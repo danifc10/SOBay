@@ -1,3 +1,3 @@
-1 pc informatica 1 2 3 daniela tiago
-3 ola infor 1 2 4 tiago -
-2 ola infor 1 2 4 tiago -
+1 carro mecanica 5 2 4 daniela -
+2 PC informatica 5 2 4 daniela -
+3 casa casa 5 2 4 daniela -
