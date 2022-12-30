@@ -44,7 +44,6 @@ user *addUser(user *a, int *tam, char *nome, pid_t user_pid)
 	return u;
 }
 
-
 user* eliminaUser(user *a, int *tam, pid_t pid)
 {
 	for (int i = 0; i < *tam; i++)
@@ -69,16 +68,6 @@ user* eliminaUser(user *a, int *tam, pid_t pid)
 		exit(1);
 	}
 	return c;
-}
-
-
-
-void showClients(user *u, int tam)
-{
-	for (int i = 0; i < tam; i++)
-	{
-		printf("Pid:%d\tNome:%s\tSaldo:%d\n", u[i].pid, u[i].nome, u[i].saldo);
-	}
 }
 
 int kick_cmd(user *u, int tam, char *nome)
@@ -106,6 +95,7 @@ int exist(user *u, int tam, char *nome)
 	}
 	return 0;
 }
+
 void closeFrontends(user *u, int tam)
 {
 	union sigval val;
@@ -115,6 +105,7 @@ void closeFrontends(user *u, int tam)
 	}
 }
 
+// retorna o user atual
 user *getClient(user *u, int tam, pid_t pid)
 {
 	for (int i = 0; i < tam; ++i)
@@ -124,19 +115,21 @@ user *getClient(user *u, int tam, pid_t pid)
 		}
 }
 
+// retorna 1 se atualizou e 0 se nao
 int atualizaSaldo(user *u, int tam, pid_t pid, int value)
 {
 	for (int i = 0; i < tam; i++)
 	{
 		if (u[i].pid == pid)
 		{
-			u[i].saldo = value;
+			u[i].saldo += value;
 			return 1;
 		}
 	}
 	return 0;
 }
 
+// retorna o saldo
 int getSaldo(user *u, int tam, pid_t pid)
 {
 	for (int i = 0; i < tam; i++)
@@ -201,27 +194,30 @@ void *answer_clients(void *data)
 		switch (r.request_type)
 		{
 		case ENTRADA:
+			if((st->utam) == MAX_CLIENTS){
+				resp.valido = 0;
+				resp.res =FAILURE;
+				break;
+			}
 			valido = isUserValid(r.a.nome, r.a.pass);
-			if (valido == 1)
+			if (valido)
 			{
-				int val = exist(st->u, st->utam, r.a.nome);
-				if (val)
+				valido = exist(st->u, st->utam, r.a.nome);
+				if (valido)
 				{
 					resp.valido = 0;
 					resp.res = FAILURE;
+					break;
 				}
-				else
-				{
-					st->u = addUser(st->u, &(st->utam), r.a.nome, r.pid);
-					resp.valido = 1;
-					resp.res = SUCCESS;
-				}
+
+				st->u = addUser(st->u, &(st->utam), r.a.nome, r.pid);
+				resp.valido = 1;
+				resp.res = SUCCESS;
+				break;
 			}
-			else
-			{
-				resp.valido = 0;
-				resp.res = FAILURE;
-			}
+
+			resp.valido = 0;
+			resp.res = FAILURE;
 			break;
 		case CASH:
 			resp.res = SUCCESS;
@@ -231,16 +227,11 @@ void *answer_clients(void *data)
 			resp.res = SUCCESS;
 			valido = atualizaSaldo(st->u, st->utam, r.pid, r.add.value);
 			if (valido)
-			{
 				resp.res = SUCCESS;
-			}
 			else
-			{
 				resp.res = FAILURE;
-			}
 			break;
 		case BUY:
-			resp.res = SUCCESS;
 			u = getClient(st->u, st->utam, r.pid);
 			valido = compraItem(st->i, r.buy.id, r.buy.value, u->nome, u->saldo, &(st->itam));
 			if (valido)
@@ -253,7 +244,11 @@ void *answer_clients(void *data)
 			resp.res = FAILURE;
 			break;
 		case SELL:
-			resp.res = SUCCESS;
+			if((st->itam) == MAX_ITEMS){
+				resp.valido = st->itam;
+				resp.res =FAILURE;
+				break;
+			}
 			user *u = getClient(st->u, st->utam, r.pid);
 			int id = getId(st->itam);
 			st->i = adicionaItem(st->i, &(st->itam), r.sell.nome, id, r.sell.categoria, r.sell.value, r.sell.compra, r.sell.duracao, u->nome, "-");

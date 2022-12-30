@@ -3,7 +3,7 @@
 #include <string.h>
 #ifndef ITEM_H
 #define ITEM_H
-#define FITEM "items.txt"
+
 static int id = 0;
 typedef struct Item item, *ptr;
 struct Item{

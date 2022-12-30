@@ -1,13 +1,15 @@
 #include "item.h"
+
+// retorna o prox id
 int getId(int tam){
 	return (++tam);
 }
+
 void mostraItem(item *i, int tam)
 {
 	for (int j = 0; j < tam; j++)
 	{
-		printf("ITEM %d :\n", j+1);
-		printf("Nome:%s Id:%d Catg.:%s Valor:%d CompraJa:%d Dono:%s Tempo:%d\n\n ", i[j].nome, i[j].id, i[j].categoria, i[j].valor_base, i[j].compra_ja, i[j].dono, i[j].tempo);
+		printf("Id:%d Nome:%s Catg.:%s Valor:%d CompraJa:%d Dono:%s Tempo:%d\n\n ", i[j].id, i[j].nome, i[j].categoria, i[j].valor_base, i[j].compra_ja, i[j].dono, i[j].tempo);
 	}
 }
 
@@ -63,6 +65,8 @@ item *leFicheiroItem(char *nomeFich, item *i)
 	fclose(f);
 	return i;
 }
+
+// retorna o n de itens no ficheiro
 int contaItems(char *filename)
 {
 	FILE *f;
@@ -124,7 +128,7 @@ void litime(int time, item *i, int item_len)
 		}
 	}
 }
-// 1 s eelimindao 0 se erro
+
 item * eliminaItem(int id, item *i, int *item_len){
 	for (int j = 0; j < *item_len; j++)
 	{
@@ -150,6 +154,7 @@ item * eliminaItem(int id, item *i, int *item_len){
 	return a;
 }
 
+// retorna 1 se pode comprar e 0 se nao
 int compraItem(item *i, int id, int valor, char *nome, int saldo, int *item_len){
 	for(int j = 0; j < *item_len ;j++){
 		if(i[j].id == id){
