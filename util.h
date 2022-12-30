@@ -16,7 +16,7 @@
 #define PIPE_SERVER "servidor"
 #define PIPE_CLIENT "p_cli_%d"
 #define MAX_CLIENTS 20
-#define MAX_ITEMS 3
+#define MAX_ITEMS 30
 #define MAX_PROMS 10
 #define PIPE_SIZE 20
 #define FUSERS "ficheiro_utilizadores.txt"
