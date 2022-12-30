@@ -3,5 +3,5 @@ all:
 	gcc frontend.c item.h item.c -o frontend
 
 clean:
-	rm servidor
-	rm cliente
+	rm backend
+	rm frontend
