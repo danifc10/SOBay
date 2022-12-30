@@ -1,5 +1,7 @@
 #include "item.h"
-
+int getId(int tam){
+	return (++tam);
+}
 void mostraItem(item *i, int tam)
 {
 	for (int j = 0; j < tam; j++)
@@ -9,16 +11,24 @@ void mostraItem(item *i, int tam)
 	}
 }
 
-item *adicionaItem(item *i, int tam, char *n, int id, char *ctg, int vb, int cj, int tmp, char *dono, char *licitador)
+item *adicionaItem(item *i, int *tam, char *n, int id, char *ctg, int vb, int cj, int tmp, char *dono, char *licitador)
 {
-	strcpy(i[tam - 1].nome, n);
-	strcpy(i[tam - 1].categoria, ctg);
-	strcpy(i[tam - 1].dono, dono);
-	strcpy(i[tam - 1].licitador, licitador);
-	i[tam - 1].id = id;
-	i[tam - 1].valor_base = vb;
-	i[tam - 1].compra_ja = cj;
-	i[tam - 1].tempo = tmp;
+
+	i = (item *)realloc(i, sizeof(item)*((*tam)+1));
+	if(i ==NULL){
+		printf("erro ao alocar memoria\n");
+		return NULL;
+	}
+
+	strcpy(i[*tam].nome, n);
+	strcpy(i[*tam].categoria, ctg);
+	strcpy(i[*tam].dono, dono);
+	strcpy(i[*tam].licitador, licitador);
+	i[*tam].id = id;
+	i[*tam].valor_base = vb;
+	i[*tam].compra_ja = cj;
+	i[*tam].tempo = tmp;
+	++(*tam);
 
 	return i;
 }
@@ -36,7 +46,7 @@ item *leFicheiroItem(char *nomeFich, item *i)
 		fclose(f);
 		return 0;
 	}
-	int count = 1;
+	int count = 0;
 	while (!feof(f))
 	{
 
@@ -46,7 +56,7 @@ item *leFicheiroItem(char *nomeFich, item *i)
 		fgets(Linha, 100, f);
 		sscanf(Linha, "%d %s %s %d %d %d %s %s", &id, &nome, &categoria, &valor_base, &compra_ja, &tempo, &nomeU, &licitador);
 
-		i = adicionaItem(i, count, nome, id, categoria, valor_base, compra_ja, tempo, nomeU, licitador);
+		i = adicionaItem(i, &count, nome, id, categoria, valor_base, compra_ja, tempo, nomeU, licitador);
 		count++;
 	}
 
@@ -115,36 +125,35 @@ void litime(int time, item *i, int item_len)
 	}
 }
 // 1 s eelimindao 0 se erro
-item * eliminaItem(int id, item *i, int item_len){
-	for (int j = 0; j < item_len; j++)
+item * eliminaItem(int id, item *i, int *item_len){
+	for (int j = 0; j < *item_len; j++)
 	{
 		if (i[j].id == id)
 		{
-			for (int p = j; p < item_len - 1; p++)
+			for (int p = j; p < ((*item_len) - 1); p++)
 				i[p] = i[p + 1];
 			break;
 		}
 	}
-	--item_len;
-	if (item_len == 0)
+	--(*item_len);
+	if (*item_len == 0)
 	{
 		free(i);
 		return NULL;
 	}
-	i = (item *)realloc(i, sizeof(item) * item_len);
-	if (i == NULL)
+	item *a = (item *)realloc(i, sizeof(item) * (*item_len));
+	if (a == NULL)
 	{
 		printf("error allocating memory\n");
 		exit(1);
 	}
-	return i;
+	return a;
 }
 
-int compraItem(item *i, int id, int valor, char *nome, int saldo, int item_len){
-	for(int j = 0; j < item_len ;j++){
+int compraItem(item *i, int id, int valor, char *nome, int saldo, int *item_len){
+	for(int j = 0; j < *item_len ;j++){
 		if(i[j].id == id){
 			if((valor >= i[j].valor_base )&&( valor <= saldo)){
-				//eliminaItem(id, i, item_len);
 				return 1;
 			}else{
 				return 0;
@@ -152,3 +161,4 @@ int compraItem(item *i, int id, int valor, char *nome, int saldo, int item_len){
 		}
 	}
 }
+

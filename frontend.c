@@ -141,8 +141,15 @@ int main(int argc, char *argv[])
 			}
 			else if (!strcmp(cmd_request, "sell"))
 			{
+				char nome[30] = "", ctg[30] = "";
+				int preco = 0, pcompra = 0, duracao = 0;
 				r.request_type = SELL;
-				sscanf(cmd, "%s %s");
+				sscanf(cmd, "%s %s %s %d %d %d", cmd_request, &nome, &ctg, &preco, &pcompra, &duracao);
+				r.sell.duracao = duracao;
+				r.sell.compra = pcompra;
+				r.sell.value = preco;
+				strcpy(r.sell.nome, nome);
+				strcpy(r.sell.categoria, ctg);
 			}
 			else
 			{
@@ -165,23 +172,30 @@ int main(int argc, char *argv[])
 
 		if (r.request_type != EXIT)
 		{
-			if (r.request_type == LIST || r.request_type == BUY)
+			if (r.request_type == LICAT)
 			{
-				if(r.request_type == BUY){ 
-					--item_len;
-				}
-
 				for (int j = 0; j < item_len; j++)
 				{
 					n = read(fc, &i[j], sizeof(item));
 				}
 			}
-			else
+			else if(r.request_type == SELL ||r.request_type == BUY ||r.request_type== LIST)
+			{
+				n = read(fc, &resp, sizeof(response));
+				if(item_len!= resp.value){
+					item_len = resp.value;
+					i =(item *)realloc(i, sizeof(item)*item_len);
+				}
+				
+				for(int j = 0; j < item_len ; j++){
+					read(fc, &i[j], sizeof(item));
+				}
+			}else 
 			{
 				n = read(fc, &resp, sizeof(response));
 			}
 
-			if (n == -1)
+			if (n == -1 || signal_exit ==1)
 			{
 				printf("error reading response from server");
 				close(fd);
@@ -196,9 +210,7 @@ int main(int argc, char *argv[])
 			}
 			else if (r.request_type == LIST )
 			{
-				printf("entro\n");
 				mostraItem(i, item_len);
-				printf("sai\n");
 			}
 			else if (r.request_type == ENTRADA)
 			{

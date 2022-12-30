@@ -46,8 +46,9 @@ typedef struct sell_cmd
 	int value;
 	int compra;
 	int duracao;
-	char categoria[100];
-	char nome[100];
+	char categoria[30];
+	char nome[30];
+	char user[30];
 } sell_cmd;
 
 typedef struct lists_cmd

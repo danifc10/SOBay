@@ -1,3 +1,1 @@
 1 carro mecanica 5 2 4 daniela -
-2 PC informatica 5 2 4 daniela -
-3 casa casa 5 2 4 daniela -
