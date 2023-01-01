@@ -9,11 +9,11 @@ void mostraItem(item *i, int tam)
 {
 	for (int j = 0; j < tam; j++)
 	{
-		printf("Id:%d Nome:%s Catg.:%s Valor:%d CompraJa:%d Dono:%s Tempo:%d\n\n ", i[j].id, i[j].nome, i[j].categoria, i[j].valor_base, i[j].compra_ja, i[j].dono, i[j].tempo);
+		printf("Id: %d\tNome: %s\tCatg: %s\tValor: %d\tCompraJa: %d\tVendedor: %s\tLicitador: %s\n\n ", i[j].id, i[j].nome, i[j].categoria, i[j].valor_base, i[j].compra_ja, i[j].dono, i[j].licitador);
 	}
 }
 
-item *adicionaItem(item *i, int *tam, char *n, int id, char *ctg, int vb, int cj, int tmp, char *dono, char *licitador)
+item *adicionaItem(item *i, int *tam, char *n, int id, char *ctg, int vb, int cj, int tmp, char *dono, char *licitador, int tempoIni)
 {
 
 	i = (item *)realloc(i, sizeof(item)*((*tam)+1));
@@ -30,12 +30,13 @@ item *adicionaItem(item *i, int *tam, char *n, int id, char *ctg, int vb, int cj
 	i[*tam].valor_base = vb;
 	i[*tam].compra_ja = cj;
 	i[*tam].tempo = tmp;
+	i[*tam].tempoInicio = tempoIni;
 	++(*tam);
 
 	return i;
 }
 
-item *leFicheiroItem(char *nomeFich, item *i)
+item *leFicheiroItem(char *nomeFich, item *i, int *tam)
 {
 	FILE *f;
 	char Linha[100];
@@ -44,11 +45,11 @@ item *leFicheiroItem(char *nomeFich, item *i)
 
 	if (f == NULL)
 	{
-		printf("ERRO");
+		printf("ERRO ao abrir ficheiro");
 		fclose(f);
 		return 0;
 	}
-	int count = 0;
+
 	while (!feof(f))
 	{
 
@@ -57,30 +58,12 @@ item *leFicheiroItem(char *nomeFich, item *i)
 
 		fgets(Linha, 100, f);
 		sscanf(Linha, "%d %s %s %d %d %d %s %s", &id, &nome, &categoria, &valor_base, &compra_ja, &tempo, &nomeU, &licitador);
+		i = adicionaItem(i, tam, nome, id, categoria, valor_base, compra_ja, tempo, nomeU, licitador, 0);
 
-		i = adicionaItem(i, &count, nome, id, categoria, valor_base, compra_ja, tempo, nomeU, licitador);
-		count++;
 	}
 
 	fclose(f);
 	return i;
-}
-
-// retorna o n de itens no ficheiro
-int contaItems(char *filename)
-{
-	FILE *f;
-	int count = 0;
-	char buff[100];
-
-	f = fopen(filename, "rt");
-
-	while (!feof(f))
-	{
-		fgets(buff, 100, f);
-		count++;
-	}
-	return count;
 }
 
 void licat(char *ctg, item *i, int item_len)
@@ -90,7 +73,7 @@ void licat(char *ctg, item *i, int item_len)
 	{
 		if (strcmp(i[j].categoria, ctg) == 0)
 		{
-			printf("Nome:%s Id:%d Catg.:%s Valor:%d CompraJa:%d Dono:%s Tempo:%d\n\n", i[j].nome, i[j].id, i[j].categoria, i[j].valor_base, i[j].compra_ja, i[j].dono, i[j].tempo);
+			printf("Id: %d\tNome: %s\tCatg: %s\tValor: %d\tCompraJa: %d\tVendedor: %s\tLicitador: %s\n\n ", i[j].id, i[j].nome, i[j].categoria, i[j].valor_base, i[j].compra_ja, i[j].dono, i[j].licitador);
 		}
 	}
 }
@@ -101,7 +84,7 @@ void lisel(char *nome, item *i, int item_len)
 	{
 		if (strcmp(i[j].dono, nome) == 0)
 		{
-			printf("Nome:%s Id:%d Catg.:%s Valor:%d CompraJa:%d Dono:%s Tempo:%d \n\n", i[j].nome, i[j].id, i[j].categoria, i[j].valor_base, i[j].compra_ja, i[j].dono, i[j].tempo);
+			printf("Id: %d\tNome: %s\tCatg: %s\tValor: %d\tCompraJa: %d\tVendedor: %s\tLicitador: %s\n\n ", i[j].id, i[j].nome, i[j].categoria, i[j].valor_base, i[j].compra_ja, i[j].dono, i[j].licitador);
 		}
 	}
 }
@@ -113,7 +96,7 @@ void lival(int value, item *i,int item_len)
 	{
 		if (value >= i[j].valor_base)
 		{
-			printf("Nome:%s Id:%d Catg.:%s Valor:%d CompraJa:%d Dono:%s Tempo:%d\n\n ", i[j].nome, i[j].id, i[j].categoria, i[j].valor_base, i[j].compra_ja, i[j].dono, i[j].tempo);
+			printf("Id: %d\tNome: %s\tCatg: %s\tValor: %d\tCompraJa: %d\tVendedor: %s\tLicitador: %s\n\n ", i[j].id, i[j].nome, i[j].categoria, i[j].valor_base, i[j].compra_ja, i[j].dono, i[j].licitador);
 		}
 	}
 }
@@ -124,7 +107,7 @@ void litime(int time, item *i, int item_len)
 	{
 		if (time >= i[j].tempo)
 		{
-			printf("Nome:%s Id:%d Catg.:%s Valor:%d CompraJa:%d Dono:%s Tempo:%d\n\n ", i[j].nome, i[j].id, i[j].categoria, i[j].valor_base, i[j].compra_ja, i[j].dono, i[j].tempo);
+			printf("Id: %d\tNome: %s\tCatg: %s\tValor: %d\tCompraJa: %d\tVendedor: %s\tLicitador: %s\n\n ", i[j].id, i[j].nome, i[j].categoria, i[j].valor_base, i[j].compra_ja, i[j].dono, i[j].licitador);
 		}
 	}
 }
@@ -154,16 +137,38 @@ item * eliminaItem(int id, item *i, int *item_len){
 	return a;
 }
 
-// retorna 1 se pode comprar e 0 se nao
+// retorna 1 se pode comprar e 0 se nao 2 se compraJA
 int compraItem(item *i, int id, int valor, char *nome, int saldo, int *item_len){
 	for(int j = 0; j < *item_len ;j++){
 		if(i[j].id == id){
-			if((valor >= i[j].valor_base )&&( valor <= saldo)){
+			if(i[j].compra_ja <= valor && i[j].compra_ja != 0 &&( valor <= saldo)&&(strcmp(i[j].dono, nome)!=0) ){
+				return 2;
+			}else if((valor >= i[j].valor_base )&&( valor <= saldo)&&(strcmp(i[j].dono, nome)!=0)){
 				return 1;
 			}else{
 				return 0;
 			}
 		}
 	}
+}
+
+void atualizaFitems(item *i, int tam, char *nome, int tempoAtual){
+	FILE *p;
+
+	p = fopen(nome, "w");
+
+	if(p == NULL)
+		return;
+
+	for(int j = 0; j < tam ; j++){
+		i[j].tempo = tempoAtual - i[j].tempo;
+		if(j == tam -1){
+			fprintf(p, "%d %s %s %d %d %d %s %s", i[j].id, i[j].nome, i[j].categoria, i[j].valor_base, i[j].compra_ja, i[j].tempo, i[j].dono, i[j].licitador);
+		}else{
+			fprintf(p, "%d %s %s %d %d %d %s %s\n", i[j].id, i[j].nome, i[j].categoria, i[j].valor_base, i[j].compra_ja, i[j].tempo, i[j].dono, i[j].licitador);
+		}
+		
+	}
+	fclose(p);
 }
 

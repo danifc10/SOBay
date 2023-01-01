@@ -94,11 +94,27 @@ typedef struct request
 	};
 } request;
 
+enum NotificacaoType
+{
+	VENDA,
+	COMPRA,
+	PROM
+};
+
 typedef struct response
 {
 	enum RequestResult res;
 	int value;
 	int valido;
+	int notif;
+	enum NotificacaoType notType;
+	int id;
+	char nomeI[20];
+	char nomeU[20];
+	char ctg[20];
+	int preco;
+	int compraJa; 
+
 } response;
 
 #endif

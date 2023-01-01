@@ -5,14 +5,19 @@
 
 // Global Var
 static int signal_exit = 0;
+static int signal_notif = 0;
 
 void signal_handler(int sig)
 {
+	if (sig == SIGCHLD)
+	{
+		signal_notif = 1;
+		return;
+	}
 	signal_exit = 1;
-
 }
 
-int main(int argc, char *argv[])
+void main(int argc, char *argv[])
 {
 
 	char *cmd = NULL;
@@ -26,13 +31,13 @@ int main(int argc, char *argv[])
 	sa.sa_handler = signal_handler;
 	sigaction(SIGINT, &sa, NULL);
 	sigaction(SIGPIPE, &sa, NULL);
+	sigaction(SIGCHLD, &sa, NULL);
 
 	request r;
 	r.pid = getpid();
 
-	item *i;
-	int item_len = contaItems(FITEM);
-	i = (item *)malloc(item_len * sizeof(item));
+	item *i = NULL;
+	int item_len = 0;
 
 	sprintf(pipe, PIPE_CLIENT, r.pid);
 	int res = access(pipe, F_OK);
@@ -81,7 +86,7 @@ int main(int argc, char *argv[])
 			cmd[n_chars - 1] = '\0';
 			sscanf(cmd, "%s", cmd_request);
 
-			if (!strcmp(cmd_request, "exit") || signal_exit ==1)
+			if (!strcmp(cmd_request, "exit") || signal_exit == 1)
 			{
 				r.request_type = EXIT;
 			}
@@ -96,11 +101,6 @@ int main(int argc, char *argv[])
 			else if (!strcmp(cmd_request, "time"))
 			{
 				r.request_type = TIME;
-				struct tm *tempo;
-				time_t segundos;
-				time(&segundos);
-				tempo = localtime(&segundos);
-				printf("Tempo: %d:%d\n", tempo->tm_hour, tempo->tm_min);
 			}
 			else if (!strcmp(cmd_request, "licat"))
 			{
@@ -134,7 +134,7 @@ int main(int argc, char *argv[])
 			}
 			else if (!strcmp(cmd_request, "buy"))
 			{
-				r.request_type = BUY; 
+				r.request_type = BUY;
 				sscanf(cmd, "%s %d %d", cmd_request, &value, &value2);
 				r.buy.id = value;
 				r.buy.value = value2;
@@ -153,16 +153,17 @@ int main(int argc, char *argv[])
 			}
 			else
 			{
-				printf("invalid command\n");
 				continue;
 			}
 		}
+
 		n = write(fd, &r, sizeof(request));
-		if (n == -1 || signal_exit ==1)
+
+		if (n == -1 || signal_exit)
 		{
 			if (errno == EPIPE)
 				printf("serv is closed\n");
-			else if(signal_exit ==1)
+			else if (signal_exit == 1)
 				printf("disconnected...\n");
 			close(fd);
 			close(fc);
@@ -172,30 +173,29 @@ int main(int argc, char *argv[])
 
 		if (r.request_type != EXIT)
 		{
-			if (r.request_type == LICAT)
+
+			if (r.request_type == SELL || r.request_type == BUY || r.request_type == LIST)
 			{
+
+				n = read(fc, &resp, sizeof(response));
+
+				if (item_len != resp.value)
+				{
+					item_len = resp.value;
+					i = (item *)realloc(i, sizeof(item) * item_len);
+				}
+
 				for (int j = 0; j < item_len; j++)
 				{
-					n = read(fc, &i[j], sizeof(item));
-				}
-			}
-			else if(r.request_type == SELL ||r.request_type == BUY ||r.request_type== LIST)
-			{
-				n = read(fc, &resp, sizeof(response));
-				if(item_len!= resp.value){
-					item_len = resp.value;
-					i =(item *)realloc(i, sizeof(item)*item_len);
-				}
-				
-				for(int j = 0; j < item_len ; j++){
 					read(fc, &i[j], sizeof(item));
 				}
-			}else 
+			}
+			else
 			{
 				n = read(fc, &resp, sizeof(response));
 			}
 
-			if (n == -1 || signal_exit ==1)
+			if (n == -1 || signal_exit == 1)
 			{
 				printf("error reading response from server");
 				close(fd);
@@ -208,7 +208,7 @@ int main(int argc, char *argv[])
 			{
 				printf("Saldo: %d\n", resp.value);
 			}
-			else if (r.request_type == LIST )
+			else if (r.request_type == LIST)
 			{
 				mostraItem(i, item_len);
 			}
@@ -223,8 +223,11 @@ int main(int argc, char *argv[])
 					printf("sorry\n");
 					exit(1);
 				}
+			}else if(r.request_type == TIME){
+				printf("Tempo: %d\n", resp.value);
 			}
 		}
+
 		aux++;
 	} while (r.request_type != EXIT);
 

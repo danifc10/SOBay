@@ -1,1 +1,2 @@
-1 carro mecanica 5 2 4 daniela -
+1 carro mecanica 5 0 -260 daniela -
+2 computador informatica 1000 3000 -353 tiago -

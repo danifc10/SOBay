@@ -22,6 +22,8 @@ typedef struct structs
 
 // Global Var
 static int signal_exit = 0;
+static int signal_notif = 1;
+static int tempo = 0;
 
 void signal_handler(int sig)
 {
@@ -44,7 +46,7 @@ user *addUser(user *a, int *tam, char *nome, pid_t user_pid)
 	return u;
 }
 
-user* eliminaUser(user *a, int *tam, pid_t pid)
+user *eliminaUser(user *a, int *tam, pid_t pid)
 {
 	for (int i = 0; i < *tam; i++)
 	{
@@ -58,18 +60,21 @@ user* eliminaUser(user *a, int *tam, pid_t pid)
 		}
 	}
 	--(*tam);
-	if(*tam == 0){
+	if (*tam == 0)
+	{
 		free(a);
 		return NULL;
 	}
-	user* c = (user*)realloc(a, sizeof(user)* ((*tam)));
-	if(c == NULL){
+	user *c = (user *)realloc(a, sizeof(user) * ((*tam)));
+	if (c == NULL)
+	{
 		printf("error allocating memory\n");
 		exit(1);
 	}
 	return c;
 }
 
+// 1 elimina / 0 nao elimina
 int kick_cmd(user *u, int tam, char *nome)
 {
 	for (int i = 0; i < tam; i++)
@@ -108,10 +113,18 @@ void closeFrontends(user *u, int tam)
 // retorna o user atual
 user *getClient(user *u, int tam, pid_t pid)
 {
-	for (int i = 0; i < tam; ++i)
+	for (int i = 0; i < tam; i++)
 		if (u[i].pid == pid)
 		{
 			return u + i;
+		}
+}
+item *getItem(item *i, int tam, int id)
+{
+	for (int j = 0; j < tam; j++)
+		if (i[j].id == id)
+		{
+			return i + j;
 		}
 }
 
@@ -142,12 +155,49 @@ int getSaldo(user *u, int tam, pid_t pid)
 	return 0;
 }
 
+item *verificaLeilao(item *i, int *tam, user *u, int utam)
+{
+	int time = tempo;
+	for (int j = 0; j < *tam; j++)
+	{
+		if (tempo == (i[j].tempo + i[j].tempoInicio))
+		{
+			for (int a = 0; a < utam; a++)
+			{
+				if (!strcmp(i[j].licitador, u[a].nome))
+				{
+					++(u[a].nItem);
+					u[a].saldo -= i[j].valor_base;
+				}
+			}
+			for (int a = 0; a < utam; a++)
+			{
+				if (!strcmp(i[j].dono, u[a].nome))
+					u[a].saldo += i[j].valor_base;
+			}
+			i = eliminaItem(i[j].id, i, tam);
+			// enviar notificações
+			signal_notif = 1;
+		}
+	}
+	return i;
+}
+/*
+void enviaSinal(user *u, int tam, pid_t pid)
+{
+	union sigval sig;
+	for (int i = 0; i < tam; i++)
+	{
+		if(u[i].pid != pid){
+			sigqueue(u[i].pid, SIGCHLD, sig);
+		}
+	}
+	return;
+}*/
+
 void *answer_clients(void *data)
 {
 	structs *st = (structs *)data;
-	loadUsersFile(FUSERS);
-	st->i = leFicheiroItem(FITEM, st->i);
-	st->itam = contaItems(FITEM);
 	int res = access(PIPE_SERVER, F_OK);
 	if (res != 0)
 	{
@@ -170,6 +220,7 @@ void *answer_clients(void *data)
 	request r;
 	response resp;
 	user *u = NULL;
+	item *it = NULL;
 
 	char pipe[PIPE_SIZE];
 	pthread_mutex_lock(st->mutex);
@@ -178,6 +229,8 @@ void *answer_clients(void *data)
 	{
 		if (!n || signal_exit)
 		{
+			saveUsersFile(FUSERS);
+			atualizaFitems(st->i, (st->itam), FITEM, tempo);
 			close(fd);
 			closeFrontends(st->u, st->utam);
 			unlink(PIPE_SERVER);
@@ -185,7 +238,6 @@ void *answer_clients(void *data)
 		}
 		else if (n != sizeof(request))
 		{
-
 			printf("errro a ler msg\n");
 			exit(1);
 		}
@@ -194,9 +246,10 @@ void *answer_clients(void *data)
 		switch (r.request_type)
 		{
 		case ENTRADA:
-			if((st->utam) == MAX_CLIENTS){
+			if ((st->utam) == MAX_CLIENTS)
+			{
 				resp.valido = 0;
-				resp.res =FAILURE;
+				resp.res = FAILURE;
 				break;
 			}
 			valido = isUserValid(r.a.nome, r.a.pass);
@@ -224,7 +277,11 @@ void *answer_clients(void *data)
 			resp.value = getSaldo(st->u, st->utam, r.pid);
 			break;
 		case ADD:
-			resp.res = SUCCESS;
+			if (r.buy.value < 0)
+			{
+				resp.res = FAILURE;
+				break;
+			}
 			valido = atualizaSaldo(st->u, st->utam, r.pid, r.add.value);
 			if (valido)
 				resp.res = SUCCESS;
@@ -233,30 +290,55 @@ void *answer_clients(void *data)
 			break;
 		case BUY:
 			u = getClient(st->u, st->utam, r.pid);
+			it = getItem(st->i, st->itam, r.buy.id);
 			valido = compraItem(st->i, r.buy.id, r.buy.value, u->nome, u->saldo, &(st->itam));
-			if (valido)
+			if (valido == 1) // licita
 			{
 				resp.res = SUCCESS;
-				st->i = eliminaItem(r.buy.id, st->i, &(st->itam));
+				strcpy(it->licitador, u->nome);
+				it->valor_base = r.buy.value;
 				resp.value = st->itam;
 				break;
 			}
-			resp.res = FAILURE;
-			break;
-		case SELL:
-			if((st->itam) == MAX_ITEMS){
-				resp.valido = st->itam;
-				resp.res =FAILURE;
+			else if (valido == 2) // compra ja
+			{
+				resp.res = SUCCESS;
+				u->nItem++;
+				u->saldo -= it->compra_ja;
+				for (int j = 0; j < st->utam; j++)
+				{
+					if (!strcmp(it->dono, u[j].nome))
+					{
+						u[j].saldo += it->compra_ja;
+					}
+				}
+				it = eliminaItem(it->id, st->i, &(st->itam));
+				resp.value = st->itam;
 				break;
 			}
-			user *u = getClient(st->u, st->utam, r.pid);
+			resp.res = FAILURE; // erros
+			// envia notificaces
+			break;
+		case SELL:
+			if ((st->itam) == MAX_ITEMS)
+			{
+				resp.value = st->itam;
+				resp.res = FAILURE;
+				break;
+			}
+			u = getClient(st->u, st->utam, r.pid);
 			int id = getId(st->itam);
-			st->i = adicionaItem(st->i, &(st->itam), r.sell.nome, id, r.sell.categoria, r.sell.value, r.sell.compra, r.sell.duracao, u->nome, "-");
+			int tam = st->itam;
+			st->i = adicionaItem(st->i, &(st->itam), r.sell.nome, id, r.sell.categoria, r.sell.value, r.sell.compra, r.sell.duracao, u->nome, "-", tempo);
 			resp.res = SUCCESS;
 			resp.value = st->itam;
+			r.request_type = SELL;
+			// resp.notif = 1;
+			//  cria notificacaos
 			break;
 		case TIME:
 			resp.res = SUCCESS;
+			resp.value = tempo;
 			break;
 		case LISEL:
 			resp.res = SUCCESS;
@@ -286,9 +368,8 @@ void *answer_clients(void *data)
 
 		pthread_mutex_unlock(st->mutex);
 
- 		if (r.request_type == SELL || r.request_type == BUY || r.request_type == LIST)
+		if (r.request_type == SELL || r.request_type == BUY || r.request_type == LIST)
 		{
-
 			sprintf(pipe, PIPE_CLIENT, r.pid);
 			fc = open(pipe, O_WRONLY);
 			if (fc == -1)
@@ -296,6 +377,7 @@ void *answer_clients(void *data)
 				printf("error ao abrir pipe cliente\n");
 				exit(1);
 			}
+
 			write(fc, &resp, sizeof(response));
 
 			for (int j = 0; j < st->itam; j++)
@@ -320,9 +402,20 @@ void *answer_clients(void *data)
 	}
 }
 
+void *handler_time(void *data)
+{
+	structs *st = (structs *)data;
+	while (1)
+	{
+		++tempo;
+		sleep(1);
+		st->i = verificaLeilao(st->i, &(st->itam), st->u, st->utam);
+		// mostraItem(st->i, st->itam);
+	}
+}
+
 int main()
 {
-
 	setbuf(stdout, NULL);
 	char *cmd = NULL;
 	size_t n_chars, cmd_size;
@@ -345,17 +438,25 @@ int main()
 	}
 
 	structs st = {NULL, 0, 0, NULL, &mutex};
+	st.i = leFicheiroItem(FITEM, st.i, &(st.itam));
+	loadUsersFile(FUSERS);
 
 	pthread_t pipe_thread;
+	pthread_t tempo_thread;
 	res = pthread_create(&pipe_thread, NULL, answer_clients, (void *)&st);
 	if (res != 0)
 	{
 		printf("error a criar thread");
 		exit(1);
 	}
+	res = pthread_create(&tempo_thread, NULL, handler_time, (void *)&st);
+	if (res != 0)
+	{
+		printf("error a criar thread do tempo");
+		exit(1);
+	}
 
 	printf("Serv is running...\n");
-
 
 	while (1)
 	{
@@ -376,7 +477,7 @@ int main()
 				printf("No clients to display\n");
 			for (int i = 0; i < st.utam; ++i)
 			{
-				printf("PID: %d\tSaldo: %d\tNome: %s\n", st.u[i].pid, st.u[i].saldo, st.u[i].nome);
+				printf("PID: %d\tSaldo: %d\tNome: %s\tN_items: %d\n", st.u[i].pid, st.u[i].saldo, st.u[i].nome, st.u[i].nItem);
 			}
 
 			pthread_mutex_unlock(&mutex);
@@ -396,14 +497,20 @@ int main()
 		{
 			sscanf(cmd, "%s %s", cmd_request, &arg);
 			int n = kick_cmd(st.u, st.utam, arg);
+			if(n)
+				printf("SUCCESS\n");
+			else
+				printf("FAILURE\n");
 		}
 		else
 		{
-			printf("invalid command\n");
+			printf("FAILURE\n");
 			continue;
 		}
 		strcpy(cmd, "");
 	}
+
+	saveUsersFile(FUSERS);
 
 	res = pthread_kill(pipe_thread, SIGUSR1);
 	if (res != 0)
@@ -422,6 +529,20 @@ int main()
 	res = pthread_mutex_destroy(&mutex);
 	if (res != 0)
 	{
+		exit(1);
+	}
+
+	res = pthread_kill(tempo_thread, SIGUSR1);
+	if (res != 0)
+	{
+		printf("error ao enviar sinal para a thread");
+		exit(1);
+	}
+
+	res = pthread_join(tempo_thread, NULL);
+	if (res != 0)
+	{
+		printf("error ao esperar pela thread\n");
 		exit(1);
 	}
 
