@@ -1,0 +1,5 @@
+1 sapatilhas desporto 30 60 37 maria -
+2 arroz alimentacao 20 0 37 tiago -
+3 tesoura papelaria 20 0 47 ola -
+4 batata alimentacao 20 0 57 daniela -
+5 caneta papelaria 5 0 57 joao -
