@@ -31,6 +31,9 @@ item *adicionaItem(item *i, int *tam, char *n, int id, char *ctg, int vb, int cj
 	i[*tam].compra_ja = cj;
 	i[*tam].tempo = tmp;
 	i[*tam].tempoInicio = tempoIni;
+	i[*tam].buyTempo = 0;
+	i[*tam].valorProm = 0;
+	i[*tam].tempoProm = 0;
 	++(*tam);
 
 	return i;
@@ -145,11 +148,10 @@ int compraItem(item *i, int id, int valor, char *nome, int saldo, int *item_len)
 				return 2;
 			}else if((valor >= i[j].valor_base )&&( valor <= saldo)&&(strcmp(i[j].dono, nome)!=0)){
 				return 1;
-			}else{
-				return 0;
 			}
 		}
 	}
+	return 0;
 }
 
 void atualizaFitems(item *i, int tam, char *nome, int tempoAtual){
@@ -161,7 +163,7 @@ void atualizaFitems(item *i, int tam, char *nome, int tempoAtual){
 		return;
 
 	for(int j = 0; j < tam ; j++){
-		i[j].tempo = tempoAtual - i[j].tempo;
+		i[j].tempo = i[j].tempo - tempoAtual;
 		if(j == tam -1){
 			fprintf(p, "%d %s %s %d %d %d %s %s", i[j].id, i[j].nome, i[j].categoria, i[j].valor_base, i[j].compra_ja, i[j].tempo, i[j].dono, i[j].licitador);
 		}else{

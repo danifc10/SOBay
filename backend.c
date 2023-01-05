@@ -11,12 +11,20 @@ typedef struct user
 	pid_t pid;
 } user;
 
+typedef struct prom
+{
+	char nome[100];
+	pid_t pt;
+} prom;
+
 typedef struct structs
 {
 	item *i;
 	int itam;
 	int utam;
 	user *u;
+	prom *p;
+	int ptam;
 	pthread_mutex_t *mutex;
 } structs;
 
@@ -160,40 +168,82 @@ item *verificaLeilao(item *i, int *tam, user *u, int utam)
 	int time = tempo;
 	for (int j = 0; j < *tam; j++)
 	{
-		if (tempo == (i[j].tempo + i[j].tempoInicio))
+		if ((i[j].tempoInicio + i[j].tempo) <= tempo)
 		{
 			for (int a = 0; a < utam; a++)
 			{
 				if (!strcmp(i[j].licitador, u[a].nome))
 				{
 					++(u[a].nItem);
-					u[a].saldo -= i[j].valor_base;
+					if (i[j].tempoProm >= i[j].buyTempo)
+					{
+						float desconto = (i[j].valor_base * (i[j].valorProm * 0.01));
+						u[a].saldo -= (i[j].valor_base - desconto);
+					}
+					else
+					{
+						u[a].saldo -= i[j].valor_base;
+					}
 				}
-			}
-			for (int a = 0; a < utam; a++)
-			{
-				if (!strcmp(i[j].dono, u[a].nome))
+
+				if (!strcmp(i[j].dono, u[a].nome) && strcmp(i[j].licitador, "-") != 0)
 					u[a].saldo += i[j].valor_base;
 			}
 			i = eliminaItem(i[j].id, i, tam);
-			// enviar notificações
-			signal_notif = 1;
+			// enviar notificaces
 		}
 	}
 	return i;
 }
-/*
+
+char *recebePromotor(int fd_p2b[2])
+{
+	char msg[100];
+	read(fd_p2b[0], msg, 100);
+	return strtok(msg, "\n");
+}
+
+int executaPromotor(int fd_p2b[2], char *nome)
+{
+	int f = fork();
+	char output[100];
+
+	if (f == -1)
+	{
+		printf("ERRO: %s\n", getLastErrorText());
+	}
+	else if (f == 0)
+	{
+		close(1);
+		dup(fd_p2b[1]);
+		close(fd_p2b[0]);
+		close(fd_p2b[1]);
+		execl(nome, nome);
+		sleep(1);
+	}
+	return f;
+}
+
+void mostraProms(prom *p, int tam)
+{
+	for (int i = 0; i < tam; i++)
+	{
+		printf("Nome: %s\n", p[i].nome);
+	}
+}
+
 void enviaSinal(user *u, int tam, pid_t pid)
 {
 	union sigval sig;
 	for (int i = 0; i < tam; i++)
 	{
-		if(u[i].pid != pid){
+		if (u[i].pid != pid)
+		{
 			sigqueue(u[i].pid, SIGCHLD, sig);
 		}
 	}
 	return;
-}*/
+}
 
 void *answer_clients(void *data)
 {
@@ -277,7 +327,7 @@ void *answer_clients(void *data)
 			resp.value = getSaldo(st->u, st->utam, r.pid);
 			break;
 		case ADD:
-			if (r.buy.value < 0)
+			if (r.buy.value <= 0)
 			{
 				resp.res = FAILURE;
 				break;
@@ -297,8 +347,10 @@ void *answer_clients(void *data)
 				resp.res = SUCCESS;
 				strcpy(it->licitador, u->nome);
 				it->valor_base = r.buy.value;
+				it->buyTempo = tempo;
 				resp.value = st->itam;
 				break;
+				// enviar notificaces
 			}
 			else if (valido == 2) // compra ja
 			{
@@ -315,9 +367,11 @@ void *answer_clients(void *data)
 				it = eliminaItem(it->id, st->i, &(st->itam));
 				resp.value = st->itam;
 				break;
+				// enviar notificaces
 			}
-			resp.res = FAILURE; // erros
-			// envia notificaces
+			resp.value = st->itam;
+			resp.res = FAILURE;
+
 			break;
 		case SELL:
 			if ((st->itam) == MAX_ITEMS)
@@ -333,7 +387,6 @@ void *answer_clients(void *data)
 			resp.res = SUCCESS;
 			resp.value = st->itam;
 			r.request_type = SELL;
-			// resp.notif = 1;
 			//  cria notificacaos
 			break;
 		case TIME:
@@ -410,8 +463,111 @@ void *handler_time(void *data)
 		++tempo;
 		sleep(1);
 		st->i = verificaLeilao(st->i, &(st->itam), st->u, st->utam);
-		// mostraItem(st->i, st->itam);
 	}
+}
+
+item *apanhaProm(item *i, int tam, char *ctg, int valor, int duracao)
+{
+	for (int j = 0; j < tam; j++)
+	{
+		if (!strcmp(i[j].categoria, ctg))
+		{
+			i[j].tempoProm = duracao + tempo;
+			i[j].valorProm = valor;
+		}
+	}
+	return i;
+}
+
+prom *leProms(char *nomeFich, prom *p, int *tam)
+{
+	FILE *f;
+	char Linha[100];
+
+	f = fopen(nomeFich, "rt");
+
+	if (f == NULL)
+	{
+		printf("ERRO");
+		fclose(f);
+		return 0;
+	}
+	int i = 0;
+	while (!feof(f))
+	{
+		p = (prom *)realloc(p, sizeof(prom) * (i + 1));
+		fgets(Linha, 100, f);
+		sscanf(Linha, "%s", p[i].nome);
+		i++;
+	}
+	(*tam) = (i);
+	fclose(f);
+	return p;
+}
+prom * eliminaProm(prom *p, int *tam, char *nome){
+	for (int j = 0; j < *tam; j++)
+	{
+		if (!strcmp(p[j].nome, nome))
+		{
+			for (int i = j; i < ((*tam) - 1); i++)
+				p[i] = p[i+1];
+			break;
+		}
+	}
+	--(*tam);
+	if (*tam == 0)
+	{
+		free(p);
+		return NULL;
+	}
+	prom *a = (prom *)realloc(p, sizeof(prom) * (*tam));
+	if (a == NULL)
+	{
+		printf("error allocating memory\n");
+		exit(1);
+	}
+	return a;
+}
+
+void *handler_proms(void *data)
+{
+	// lanca proms
+	structs *st = (structs *)data;
+
+	int fd[2], valor = 0, duracao = 0;
+	int Ppipe = pipe(fd);
+	char output[100], ctg[100];
+	st->p = leProms(FPROMS, st->p, &(st->ptam));
+	while (1)
+	{
+		for (int j = 0; j < st->ptam; j++)
+		{
+			int pid = executaPromotor(fd, st->p[j].nome);
+			strcpy(output, recebePromotor(fd));
+			printf("\n%s\n", output);
+			sscanf(output, "%s %d %d", &ctg, &valor, &duracao);
+			st->i = apanhaProm(st->i, st->itam, ctg, valor, duracao);
+			sleep(50);
+		}
+	}
+}
+void atualizaFproms(prom *p, int tam, char *nome){
+	FILE *f;
+
+	f = fopen(nome, "w");
+
+	if(f == NULL)
+		return;
+
+	for(int j = 0; j < tam ; j++){
+		if(j == tam -1){
+			fprintf(f, "%s", p[j].nome);
+		}else{
+			fprintf(f, "%s\n", p[j].nome);
+		}
+		
+	}
+	fclose(f);
 }
 
 int main()
@@ -437,12 +593,14 @@ int main()
 		exit(1);
 	}
 
-	structs st = {NULL, 0, 0, NULL, &mutex};
+	structs st = {NULL, 0, 0, NULL, NULL, 0, &mutex};
 	st.i = leFicheiroItem(FITEM, st.i, &(st.itam));
 	loadUsersFile(FUSERS);
 
 	pthread_t pipe_thread;
 	pthread_t tempo_thread;
+	pthread_t proms_thread;
+
 	res = pthread_create(&pipe_thread, NULL, answer_clients, (void *)&st);
 	if (res != 0)
 	{
@@ -450,6 +608,12 @@ int main()
 		exit(1);
 	}
 	res = pthread_create(&tempo_thread, NULL, handler_time, (void *)&st);
+	if (res != 0)
+	{
+		printf("error a criar thread do tempo");
+		exit(1);
+	}
+	res = pthread_create(&proms_thread, NULL, handler_proms, (void *)&st);
 	if (res != 0)
 	{
 		printf("error a criar thread do tempo");
@@ -474,7 +638,7 @@ int main()
 		{
 			pthread_mutex_lock(&mutex);
 			if (st.utam == 0)
-				printf("No clients to display\n");
+				printf("Nao existem users para mostrar\n");
 			for (int i = 0; i < st.utam; ++i)
 			{
 				printf("PID: %d\tSaldo: %d\tNome: %s\tN_items: %d\n", st.u[i].pid, st.u[i].saldo, st.u[i].nome, st.u[i].nItem);
@@ -497,10 +661,29 @@ int main()
 		{
 			sscanf(cmd, "%s %s", cmd_request, &arg);
 			int n = kick_cmd(st.u, st.utam, arg);
-			if(n)
+			if (n)
 				printf("SUCCESS\n");
 			else
 				printf("FAILURE\n");
+		}
+		else if (!strcmp(cmd_request, "prom"))
+		{
+			if (st.ptam == 0)
+				printf("Nao existem promotores disponiveis\n");
+			else
+				mostraProms(st.p, st.ptam);
+		}
+		else if (!strcmp(cmd_request, "cancel"))
+		{
+			sscanf(cmd, "%s %s", cmd_request, &arg);
+			st.p = eliminaProm(st.p, &(st.ptam), arg);
+			printf("SUCCESS\n");
+		}
+		else if (!strcmp(cmd_request, "reprom"))
+		{
+			atualizaFproms(st.p, st.ptam, FPROMS);
+			st.p = leProms(FPROMS, st.p, &(st.ptam));
+			printf("SUCCESS\n");
 		}
 		else
 		{
@@ -540,6 +723,20 @@ int main()
 	}
 
 	res = pthread_join(tempo_thread, NULL);
+	if (res != 0)
+	{
+		printf("error ao esperar pela thread\n");
+		exit(1);
+	}
+
+	res = pthread_kill(proms_thread, SIGUSR1);
+	if (res != 0)
+	{
+		printf("error ao enviar sinal para a thread");
+		exit(1);
+	}
+
+	res = pthread_join(proms_thread, NULL);
 	if (res != 0)
 	{
 		printf("error ao esperar pela thread\n");

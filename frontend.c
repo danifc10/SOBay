@@ -67,7 +67,7 @@ void main(int argc, char *argv[])
 	}
 
 	int n, value, value2;
-	char argumento[100];
+	char argumento[100]="", teste[100]="";
 	response resp;
 	int aux = 0;
 
@@ -92,72 +92,116 @@ void main(int argc, char *argv[])
 			}
 			else if (!strcmp(cmd_request, "list"))
 			{
-				r.request_type = LIST;
+				sscanf(cmd, "%s %s", cmd_request, &teste);
+				if (strcmp(teste, "") != 0)
+					r.request_type = FAIL;
+				else
+					r.request_type = LIST;
 			}
 			else if (!strcmp(cmd_request, "cash"))
 			{
-				r.request_type = CASH;
+				sscanf(cmd, "%s %s", cmd_request, &teste);
+				if (strcmp(teste, "") != 0)
+					r.request_type = FAIL;
+				else
+					r.request_type = CASH;
 			}
 			else if (!strcmp(cmd_request, "time"))
 			{
 				r.request_type = TIME;
+				sscanf(cmd, "%s %s", cmd_request, &teste);
+				if (strcmp(teste, "") != 0)
+					r.request_type = FAIL;
+				else
+					r.request_type = TIME;
 			}
 			else if (!strcmp(cmd_request, "licat"))
 			{
 				r.request_type = LICAT;
-				sscanf(cmd, "%s %s", cmd_request, &argumento);
-				licat(argumento, i, item_len);
+				sscanf(cmd, "%s %s", cmd_request, &argumento, &teste);
+				if (strcmp(teste, "") != 0|| strcmp(argumento, "") ==0)
+					r.request_type = FAIL;
+				else
+					licat(argumento, i, item_len);
 			}
 			else if (!strcmp(cmd_request, "lisel"))
 			{
 				r.request_type = LISEL;
-				sscanf(cmd, "%s %s", cmd_request, &argumento);
-				lisel(argumento, i, item_len);
+				sscanf(cmd, "%s %s", cmd_request, &argumento, &teste);
+				if (strcmp(teste, "") !=0 || strcmp(argumento, "") ==0)
+					r.request_type = FAIL;
+				else
+					lisel(argumento, i, item_len);
 			}
 			else if (!strcmp(cmd_request, "lival"))
 			{
 				r.request_type = LIVAL;
-				sscanf(cmd, "%s %d", cmd_request, &value);
-				lival(value, i, item_len);
+				sscanf(cmd, "%s %d", cmd_request, &value, &teste);
+				if (strcmp(teste, "") != 0|| value == -1)
+					r.request_type = FAIL;
+				else
+					lival(value, i, item_len);
 			}
 			else if (!strcmp(cmd_request, "litime"))
 			{
 				r.request_type = LITIME;
-				sscanf(cmd, "%s %d", cmd_request, &value);
-				litime(value, i, item_len);
+				value = -1;
+				sscanf(cmd, "%s %d %s", cmd_request, &value, &teste);
+				if (strcmp(teste, "") != 0|| value == -1)
+					r.request_type = FAIL;
+				else
+					litime(value, i, item_len);
 			}
 			else if (!strcmp(cmd_request, "add"))
 			{
 				r.request_type = ADD;
-				sscanf(cmd, "%s %d", cmd_request, &value);
-				r.add.value = value;
+				value = -1;
+				sscanf(cmd, "%s %d %s", cmd_request, &value, &teste);
+				if (strcmp(teste, "") != 0)
+					r.request_type = FAIL;
+				else{
+					r.add.value = value;
+				}
 			}
 			else if (!strcmp(cmd_request, "buy"))
 			{
-				r.request_type = BUY;
-				sscanf(cmd, "%s %d %d", cmd_request, &value, &value2);
-				r.buy.id = value;
-				r.buy.value = value2;
+				value = -1;
+				value2 = -1;
+				sscanf(cmd, "%s %d %d %s", cmd_request, &value, &value2, &teste);
+				if (strcmp(teste, "") != 0|| value == -1 || value2 == -1)
+					r.request_type = FAIL;
+				else
+				{
+					r.buy.id = value;
+					r.buy.value = value2;
+					r.request_type = BUY;
+				}
 			}
 			else if (!strcmp(cmd_request, "sell"))
 			{
 				char nome[30] = "", ctg[30] = "";
-				int preco = 0, pcompra = 0, duracao = 0;
-				r.request_type = SELL;
-				sscanf(cmd, "%s %s %s %d %d %d", cmd_request, &nome, &ctg, &preco, &pcompra, &duracao);
-				r.sell.duracao = duracao;
-				r.sell.compra = pcompra;
-				r.sell.value = preco;
-				strcpy(r.sell.nome, nome);
-				strcpy(r.sell.categoria, ctg);
+				int preco = -1, pcompra = -1, duracao = -1;
+				sscanf(cmd, "%s %s %s %d %d %d %s", cmd_request, &nome, &ctg, &preco, &pcompra, &duracao, &teste);
+				if (strcmp(teste, "") !=0 || strcmp(nome, "") ==0  || strcmp(ctg, "") ==0  || preco == -1 || pcompra == -1 || duracao == -1)
+					r.request_type = FAIL;
+				else
+				{
+					r.sell.duracao = duracao;
+					r.sell.compra = pcompra;
+					r.sell.value = preco;
+					strcpy(r.sell.nome, nome);
+					strcpy(r.sell.categoria, ctg);
+					r.request_type = SELL;
+				}
 			}
 			else
 			{
+				printf("FAILURE\n");
 				continue;
 			}
 		}
-
-		n = write(fd, &r, sizeof(request));
+		if (r.request_type != FAIL)
+			n = write(fd, &r, sizeof(request));
 
 		if (n == -1 || signal_exit)
 		{
@@ -171,7 +215,7 @@ void main(int argc, char *argv[])
 			exit(1);
 		}
 
-		if (r.request_type != EXIT)
+		if (r.request_type != EXIT && r.request_type != FAIL)
 		{
 
 			if (r.request_type == SELL || r.request_type == BUY || r.request_type == LIST)
@@ -223,9 +267,16 @@ void main(int argc, char *argv[])
 					printf("sorry\n");
 					exit(1);
 				}
-			}else if(r.request_type == TIME){
+			}
+			else if (r.request_type == TIME)
+			{
 				printf("Tempo: %d\n", resp.value);
 			}
+		}
+		else if (r.request_type == FAIL)
+		{
+			strcpy(teste, "");
+			printf("FAILURE\n");
 		}
 
 		aux++;

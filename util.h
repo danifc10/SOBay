@@ -36,7 +36,8 @@ enum RequestType
 	ADD,
 	BUY,
 	SELL,
-	ENTRADA
+	ENTRADA,
+	FAIL
 };
 
 enum RequestResult

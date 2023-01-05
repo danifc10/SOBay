@@ -16,6 +16,9 @@ struct Item{
 	char dono[20+1];
 	char licitador[20+1];
 	int tempoInicio;
+	int tempoProm;
+	int valorProm;
+	int buyTempo;
 };
 int getId(int);
 void mostraItem(item *i, int tam);
