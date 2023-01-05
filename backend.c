@@ -14,7 +14,7 @@ typedef struct user
 typedef struct prom
 {
 	char nome[100];
-	pid_t pt;
+	pid_t pid;
 } prom;
 
 typedef struct structs
@@ -324,6 +324,9 @@ void *answer_clients(void *data)
 			printf("error creating the fifo %s", PIPE_SERVER);
 			exit(1);
 		}
+	}else{
+		printf("error Serv ja existe!\n");
+		exit(1);
 	}
 
 	int fd = open(PIPE_SERVER, O_RDWR);
@@ -530,7 +533,7 @@ void *answer_clients(void *data)
 void *handler_time(void *data)
 {
 	structs *st = (structs *)data;
-	while (1)
+	while (signal_exit != 1)
 	{
 		++tempo;
 		sleep(1);
@@ -547,11 +550,11 @@ void *handler_proms(void *data)
 	int Ppipe = pipe(fd);
 	char output[100], ctg[100];
 	st->p = leProms(FPROMS, st->p, &(st->ptam));
-	while (1)
+	while (signal_exit != 1)
 	{
 		for (int j = 0; j < st->ptam; j++)
 		{
-			int pid = executaPromotor(fd, st->p[j].nome);
+			st->p[j].pid = executaPromotor(fd, st->p[j].nome);
 			strcpy(output, recebePromotor(fd));
 			printf("\n%s\n", output);
 			sscanf(output, "%s %d %d", &ctg, &valor, &duracao);
