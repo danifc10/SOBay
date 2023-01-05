@@ -65,8 +65,6 @@ int updateUserBalance(char * username, int value);
 // Retorna    0 em caso de sucesso
 //           -1 em caso de erro 
 
-
-
 const char * getLastErrorText();
 // Retorna o ponteiro para uma mensagem descritiva acerca da última operação desta biblioteca
 // A invocação de uma destas funções (excepto esta) apaga sempre a mensagem anterior mesmo que não haja erro nenhum

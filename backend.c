@@ -47,7 +47,7 @@ user *addUser(user *a, int *tam, char *nome, pid_t user_pid)
 		return NULL;
 	}
 	strcpy(u[*tam].nome, nome);
-	u[*tam].saldo = 0;
+	u[*tam].saldo = getUserBalance(nome);
 	u[*tam].pid = user_pid;
 	u[*tam].nItem = 0;
 	++(*tam);
@@ -127,6 +127,8 @@ user *getClient(user *u, int tam, pid_t pid)
 			return u + i;
 		}
 }
+
+// retorna o item atual
 item *getItem(item *i, int tam, int id)
 {
 	for (int j = 0; j < tam; j++)
@@ -136,33 +138,7 @@ item *getItem(item *i, int tam, int id)
 		}
 }
 
-// retorna 1 se atualizou e 0 se nao
-int atualizaSaldo(user *u, int tam, pid_t pid, int value)
-{
-	for (int i = 0; i < tam; i++)
-	{
-		if (u[i].pid == pid)
-		{
-			u[i].saldo += value;
-			return 1;
-		}
-	}
-	return 0;
-}
-
-// retorna o saldo
-int getSaldo(user *u, int tam, pid_t pid)
-{
-	for (int i = 0; i < tam; i++)
-	{
-		if (u[i].pid == pid)
-		{
-			return u[i].saldo;
-		}
-	}
-	return 0;
-}
-
+// verifica se ja terminou o tempo se sim faz o q tem a fazer
 item *verificaLeilao(item *i, int *tam, user *u, int utam)
 {
 	int time = tempo;
@@ -196,6 +172,21 @@ item *verificaLeilao(item *i, int *tam, user *u, int utam)
 	return i;
 }
 
+// configura items para promocao
+item *apanhaProm(item *i, int tam, char *ctg, int valor, int duracao)
+{
+	for (int j = 0; j < tam; j++)
+	{
+		if (!strcmp(i[j].categoria, ctg))
+		{
+			i[j].tempoProm = duracao + tempo;
+			i[j].valorProm = valor;
+		}
+	}
+	return i;
+}
+
+// le a msg e retorna 
 char *recebePromotor(int fd_p2b[2])
 {
 	char msg[100];
@@ -203,6 +194,7 @@ char *recebePromotor(int fd_p2b[2])
 	return strtok(msg, "\n");
 }
 
+// executa o promoto
 int executaPromotor(int fd_p2b[2], char *nome)
 {
 	int f = fork();
@@ -224,12 +216,82 @@ int executaPromotor(int fd_p2b[2], char *nome)
 	return f;
 }
 
-void mostraProms(prom *p, int tam)
+// le o ficheiro dos promotores e guarda
+prom *leProms(char *nomeFich, prom *p, int *tam)
 {
-	for (int i = 0; i < tam; i++)
+	FILE *f;
+	char Linha[100];
+
+	f = fopen(nomeFich, "rt");
+
+	if (f == NULL)
 	{
-		printf("Nome: %s\n", p[i].nome);
+		printf("ERRO");
+		fclose(f);
+		return 0;
 	}
+	int i = 0;
+	while (!feof(f))
+	{
+		p = (prom *)realloc(p, sizeof(prom) * (i + 1));
+		fgets(Linha, 100, f);
+		sscanf(Linha, "%s", p[i].nome);
+		i++;
+	}
+	(*tam) = (i);
+	fclose(f);
+	return p;
+}
+
+// elimina promotor
+prom *eliminaProm(prom *p, int *tam, char *nome)
+{
+	for (int j = 0; j < *tam; j++)
+	{
+		if (!strcmp(p[j].nome, nome))
+		{
+			for (int i = j; i < ((*tam) - 1); i++)
+				p[i] = p[i + 1];
+			break;
+		}
+	}
+	--(*tam);
+	if (*tam == 0)
+	{
+		free(p);
+		return NULL;
+	}
+	prom *a = (prom *)realloc(p, sizeof(prom) * (*tam));
+	if (a == NULL)
+	{
+		printf("error allocating memory\n");
+		exit(1);
+	}
+	return a;
+}
+
+// atualiza ficheiro Promotores
+void atualizaFproms(prom *p, int tam, char *nome)
+{
+	FILE *f;
+
+	f = fopen(nome, "w");
+
+	if (f == NULL)
+		return;
+
+	for (int j = 0; j < tam; j++)
+	{
+		if (j == tam - 1)
+		{
+			fprintf(f, "%s", p[j].nome);
+		}
+		else
+		{
+			fprintf(f, "%s\n", p[j].nome);
+		}
+	}
+	fclose(f);
 }
 
 void enviaSinal(user *u, int tam, pid_t pid)
@@ -323,17 +385,22 @@ void *answer_clients(void *data)
 			resp.res = FAILURE;
 			break;
 		case CASH:
-			resp.res = SUCCESS;
-			resp.value = getSaldo(st->u, st->utam, r.pid);
+			u = getClient(st->u, st->utam, r.pid);
+			resp.value = getUserBalance(u->nome);
+			if (resp.value != -1)
+				resp.res = SUCCESS;
+			else
+				resp.res = FAILURE;
 			break;
 		case ADD:
+			u = getClient(st->u, st->utam, r.pid);
 			if (r.buy.value <= 0)
 			{
 				resp.res = FAILURE;
 				break;
 			}
-			valido = atualizaSaldo(st->u, st->utam, r.pid, r.add.value);
-			if (valido)
+			valido = updateUserBalance(u->nome, r.add.value);
+			if (valido == -1)
 				resp.res = SUCCESS;
 			else
 				resp.res = FAILURE;
@@ -466,69 +533,6 @@ void *handler_time(void *data)
 	}
 }
 
-item *apanhaProm(item *i, int tam, char *ctg, int valor, int duracao)
-{
-	for (int j = 0; j < tam; j++)
-	{
-		if (!strcmp(i[j].categoria, ctg))
-		{
-			i[j].tempoProm = duracao + tempo;
-			i[j].valorProm = valor;
-		}
-	}
-	return i;
-}
-
-prom *leProms(char *nomeFich, prom *p, int *tam)
-{
-	FILE *f;
-	char Linha[100];
-
-	f = fopen(nomeFich, "rt");
-
-	if (f == NULL)
-	{
-		printf("ERRO");
-		fclose(f);
-		return 0;
-	}
-	int i = 0;
-	while (!feof(f))
-	{
-		p = (prom *)realloc(p, sizeof(prom) * (i + 1));
-		fgets(Linha, 100, f);
-		sscanf(Linha, "%s", p[i].nome);
-		i++;
-	}
-	(*tam) = (i);
-	fclose(f);
-	return p;
-}
-prom * eliminaProm(prom *p, int *tam, char *nome){
-	for (int j = 0; j < *tam; j++)
-	{
-		if (!strcmp(p[j].nome, nome))
-		{
-			for (int i = j; i < ((*tam) - 1); i++)
-				p[i] = p[i+1];
-			break;
-		}
-	}
-	--(*tam);
-	if (*tam == 0)
-	{
-		free(p);
-		return NULL;
-	}
-	prom *a = (prom *)realloc(p, sizeof(prom) * (*tam));
-	if (a == NULL)
-	{
-		printf("error allocating memory\n");
-		exit(1);
-	}
-	return a;
-}
-
 void *handler_proms(void *data)
 {
 	// lanca proms
@@ -550,24 +554,6 @@ void *handler_proms(void *data)
 			sleep(50);
 		}
 	}
-}
-void atualizaFproms(prom *p, int tam, char *nome){
-	FILE *f;
-
-	f = fopen(nome, "w");
-
-	if(f == NULL)
-		return;
-
-	for(int j = 0; j < tam ; j++){
-		if(j == tam -1){
-			fprintf(f, "%s", p[j].nome);
-		}else{
-			fprintf(f, "%s\n", p[j].nome);
-		}
-		
-	}
-	fclose(f);
 }
 
 int main()
@@ -621,7 +607,7 @@ int main()
 	}
 
 	printf("Serv is running...\n");
-
+	int aux = 0;
 	while (1)
 	{
 		printf("\n>>");
@@ -641,7 +627,7 @@ int main()
 				printf("Nao existem users para mostrar\n");
 			for (int i = 0; i < st.utam; ++i)
 			{
-				printf("PID: %d\tSaldo: %d\tNome: %s\tN_items: %d\n", st.u[i].pid, st.u[i].saldo, st.u[i].nome, st.u[i].nItem);
+				printf("PID: %d\tSaldo: %d\tNome: %s\tN_items: %d\n", st.u[i].pid, getUserBalance(st.u[i].nome), st.u[i].nome, st.u[i].nItem);
 			}
 
 			pthread_mutex_unlock(&mutex);
@@ -668,10 +654,15 @@ int main()
 		}
 		else if (!strcmp(cmd_request, "prom"))
 		{
+			sscanf(cmd, "%s %d", cmd_request, &aux);
 			if (st.ptam == 0)
 				printf("Nao existem promotores disponiveis\n");
-			else
-				mostraProms(st.p, st.ptam);
+			else if (aux == 0){
+				for (int i = 0; i < st.ptam; i++)
+				{
+					printf("Nome: %s\n", st.p[i].nome);
+				}
+			}
 		}
 		else if (!strcmp(cmd_request, "cancel"))
 		{
@@ -681,6 +672,7 @@ int main()
 		}
 		else if (!strcmp(cmd_request, "reprom"))
 		{
+			sscanf(cmd, "%s %d", cmd_request, &aux);
 			atualizaFproms(st.p, st.ptam, FPROMS);
 			st.p = leProms(FPROMS, st.p, &(st.ptam));
 			printf("SUCCESS\n");
