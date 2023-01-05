@@ -155,15 +155,20 @@ item *verificaLeilao(item *i, int *tam, user *u, int utam)
 					{
 						float desconto = (i[j].valor_base * (i[j].valorProm * 0.01));
 						u[a].saldo -= (i[j].valor_base - desconto);
+						updateUserBalance(u[a].nome, u[a].saldo);
 					}
 					else
 					{
 						u[a].saldo -= i[j].valor_base;
+						updateUserBalance(u[a].nome, u[a].saldo);
 					}
 				}
 
 				if (!strcmp(i[j].dono, u[a].nome) && strcmp(i[j].licitador, "-") != 0)
+				{
 					u[a].saldo += i[j].valor_base;
+					updateUserBalance(u[a].nome, u[a].saldo);
+				}
 			}
 			i = eliminaItem(i[j].id, i, tam);
 			// enviar notificaces
@@ -186,7 +191,7 @@ item *apanhaProm(item *i, int tam, char *ctg, int valor, int duracao)
 	return i;
 }
 
-// le a msg e retorna 
+// le a msg e retorna
 char *recebePromotor(int fd_p2b[2])
 {
 	char msg[100];
@@ -408,7 +413,7 @@ void *answer_clients(void *data)
 		case BUY:
 			u = getClient(st->u, st->utam, r.pid);
 			it = getItem(st->i, st->itam, r.buy.id);
-			valido = compraItem(st->i, r.buy.id, r.buy.value, u->nome, u->saldo, &(st->itam));
+			valido = compraItem(st->i, r.buy.id, r.buy.value, u->nome, getUserBalance(u->nome), &(st->itam));
 			if (valido == 1) // licita
 			{
 				resp.res = SUCCESS;
@@ -657,7 +662,8 @@ int main()
 			sscanf(cmd, "%s %d", cmd_request, &aux);
 			if (st.ptam == 0)
 				printf("Nao existem promotores disponiveis\n");
-			else if (aux == 0){
+			else if (aux == 0)
+			{
 				for (int i = 0; i < st.ptam; i++)
 				{
 					printf("Nome: %s\n", st.p[i].nome);
