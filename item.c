@@ -9,7 +9,7 @@ void mostraItem(item *i, int tam)
 {
 	for (int j = 0; j < tam; j++)
 	{
-		printf("Id: %d\tNome: %s\tCatg: %s\tValor: %d\tCompraJa: %d\tVendedor: %s\tLicitador: %s\n ", i[j].id, i[j].nome, i[j].categoria, i[j].valor_base, i[j].compra_ja, i[j].dono, i[j].licitador);
+		printf("\nId: %d\tNome: %s\tCatg: %s\tValor: %d\tCompraJa: %d\tVendedor: %s\tLicitador: %s\n ", i[j].id, i[j].nome, i[j].categoria, i[j].valor_base, i[j].compra_ja, i[j].dono, i[j].licitador);
 	}
 }
 
