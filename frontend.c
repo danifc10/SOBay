@@ -9,20 +9,21 @@ static int signal_notif = 0;
 
 void signal_handler(int sig)
 {
-	if (sig == SIGCHLD)
-	{
-		signal_notif = 1;
-		return;
-	}
+
 	signal_exit = 1;
 }
 
+void signal_notific(int sig)
+{
+	signal_notif = 1;
+}
 void main(int argc, char *argv[])
 {
 
 	char *cmd = NULL;
-	size_t n_chars, cmd_size;
-	int amount, destination;
+	int c = 0;
+	size_t cmd_size;
+	int amount, destination, n_chars=0;
 	char cmd_request[CMD_SIZE];
 	char pipe[PIPE_SIZE];
 
@@ -31,7 +32,12 @@ void main(int argc, char *argv[])
 	sa.sa_handler = signal_handler;
 	sigaction(SIGINT, &sa, NULL);
 	sigaction(SIGPIPE, &sa, NULL);
-	sigaction(SIGCHLD, &sa, NULL);
+	// sigaction(SIGUSR1, &sac, NULL);
+
+	if (c == 0)
+	{
+		signal(SIGUSR1, signal_notific);
+	}
 
 	request r;
 	r.pid = getpid();
@@ -67,10 +73,10 @@ void main(int argc, char *argv[])
 	}
 
 	int n, value, value2;
-	char argumento[100]="", teste[100]="";
+	char argumento[100] = "", teste[100] = "";
 	response resp;
+	notificacao nt;
 	int aux = 0;
-
 	do
 	{
 		if (aux == 0)
@@ -79,8 +85,9 @@ void main(int argc, char *argv[])
 			strcpy(r.a.nome, argv[1]);
 			strcpy(r.a.pass, argv[2]);
 		}
-		else
+		else if(signal_notif == 0)
 		{
+
 			printf("\nOperation:\n->");
 			n_chars = getline(&cmd, &cmd_size, stdin);
 			cmd[n_chars - 1] = '\0';
@@ -89,6 +96,11 @@ void main(int argc, char *argv[])
 			if (!strcmp(cmd_request, "exit") || signal_exit == 1)
 			{
 				r.request_type = EXIT;
+			}
+			else if (signal_notif == 1)
+			{
+				printf("entrei\n");
+				r.request_type = NOTIF;
 			}
 			else if (!strcmp(cmd_request, "list"))
 			{
@@ -119,7 +131,7 @@ void main(int argc, char *argv[])
 			{
 				r.request_type = LICAT;
 				sscanf(cmd, "%s %s", cmd_request, &argumento, &teste);
-				if (strcmp(teste, "") != 0|| strcmp(argumento, "") ==0)
+				if (strcmp(teste, "") != 0 || strcmp(argumento, "") == 0)
 					r.request_type = FAIL;
 				else
 					licat(argumento, i, item_len);
@@ -128,7 +140,7 @@ void main(int argc, char *argv[])
 			{
 				r.request_type = LISEL;
 				sscanf(cmd, "%s %s", cmd_request, &argumento, &teste);
-				if (strcmp(teste, "") !=0 || strcmp(argumento, "") ==0)
+				if (strcmp(teste, "") != 0 || strcmp(argumento, "") == 0)
 					r.request_type = FAIL;
 				else
 					lisel(argumento, i, item_len);
@@ -137,7 +149,7 @@ void main(int argc, char *argv[])
 			{
 				r.request_type = LIVAL;
 				sscanf(cmd, "%s %d", cmd_request, &value, &teste);
-				if (strcmp(teste, "") != 0|| value == -1)
+				if (strcmp(teste, "") != 0 || value == -1)
 					r.request_type = FAIL;
 				else
 					lival(value, i, item_len);
@@ -147,7 +159,7 @@ void main(int argc, char *argv[])
 				r.request_type = LITIME;
 				value = -1;
 				sscanf(cmd, "%s %d %s", cmd_request, &value, &teste);
-				if (strcmp(teste, "") != 0|| value == -1)
+				if (strcmp(teste, "") != 0 || value == -1)
 					r.request_type = FAIL;
 				else
 					litime(value, i, item_len);
@@ -159,7 +171,8 @@ void main(int argc, char *argv[])
 				sscanf(cmd, "%s %d %s", cmd_request, &value, &teste);
 				if (strcmp(teste, "") != 0)
 					r.request_type = FAIL;
-				else{
+				else
+				{
 					r.add.value = value;
 				}
 			}
@@ -168,7 +181,7 @@ void main(int argc, char *argv[])
 				value = -1;
 				value2 = -1;
 				sscanf(cmd, "%s %d %d %s", cmd_request, &value, &value2, &teste);
-				if (strcmp(teste, "") != 0|| value == -1 || value2 == -1)
+				if (strcmp(teste, "") != 0 || value == -1 || value2 == -1)
 					r.request_type = FAIL;
 				else
 				{
@@ -182,7 +195,7 @@ void main(int argc, char *argv[])
 				char nome[30] = "", ctg[30] = "";
 				int preco = -1, pcompra = -1, duracao = -1;
 				sscanf(cmd, "%s %s %s %d %d %d %s", cmd_request, &nome, &ctg, &preco, &pcompra, &duracao, &teste);
-				if (strcmp(teste, "") !=0 || strcmp(nome, "") ==0  || strcmp(ctg, "") ==0  || preco == -1 || pcompra == -1 || duracao == -1)
+				if (strcmp(teste, "") != 0 || strcmp(nome, "") == 0 || strcmp(ctg, "") == 0 || preco == -1 || pcompra == -1 || duracao == -1)
 					r.request_type = FAIL;
 				else
 				{
@@ -200,9 +213,11 @@ void main(int argc, char *argv[])
 				continue;
 			}
 		}
-		if (r.request_type != FAIL)
-			n = write(fd, &r, sizeof(request));
 
+		if (r.request_type != FAIL )
+		{
+			n = write(fd, &r, sizeof(request));
+		}
 		if (n == -1 || signal_exit)
 		{
 			if (errno == EPIPE)
@@ -218,7 +233,7 @@ void main(int argc, char *argv[])
 		if (r.request_type != EXIT && r.request_type != FAIL)
 		{
 
-			if (r.request_type == SELL || r.request_type == BUY || r.request_type == LIST)
+			if (r.request_type == SELL || r.request_type == BUY || r.request_type == LIST || r.request_type == NOTIF)
 			{
 
 				n = read(fc, &resp, sizeof(response));
@@ -232,6 +247,12 @@ void main(int argc, char *argv[])
 				for (int j = 0; j < item_len; j++)
 				{
 					read(fc, &i[j], sizeof(item));
+				}
+
+				if (r.request_type == NOTIF)
+				{
+					n = read(fc, &nt, sizeof(notificacao));
+					signal_notif = 0;
 				}
 			}
 			else
@@ -271,6 +292,20 @@ void main(int argc, char *argv[])
 			else if (r.request_type == TIME)
 			{
 				printf("Tempo: %d\n", resp.value);
+			}else if(r.request_type == NOTIF){
+				switch (nt.notType)
+				{
+				case VENDA:
+					printf("\nNovo Item a venda!\n");
+					printf("Id: %d Nome: %s Categoria: %s Preco: %d Por vender\n", nt.id, nt.nomeI, nt.ctg, nt.preco);
+					break;
+				case COMPRA:
+					printf("\nUm item foi comprado!\n");
+					printf("Id: %d Nome: %s Categoria: %s Preco: %d User: %s\n", nt.id, nt.nomeI, nt.ctg, nt.preco, nt.nomeU);
+					break;
+				default:
+					break;
+				}
 			}
 		}
 		else if (r.request_type == FAIL)
@@ -280,6 +315,7 @@ void main(int argc, char *argv[])
 		}
 
 		aux++;
+		signal_notif = 0;
 	} while (r.request_type != EXIT);
 
 	close(fd);

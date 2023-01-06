@@ -37,7 +37,8 @@ enum RequestType
 	BUY,
 	SELL,
 	ENTRADA,
-	FAIL
+	FAIL, 
+	NOTIF
 };
 
 enum RequestResult
@@ -118,4 +119,14 @@ typedef struct response
 
 } response;
 
+typedef struct notificacao{
+	enum NotificacaoType notType;
+	int id;
+	char nomeI[20];
+	char nomeU[20];
+	char ctg[20];
+	int preco;
+	int compraJa;
+
+}notificacao;
 #endif

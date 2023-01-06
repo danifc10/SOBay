@@ -324,7 +324,9 @@ void *answer_clients(void *data)
 			printf("error creating the fifo %s", PIPE_SERVER);
 			exit(1);
 		}
-	}else{
+	}
+	else
+	{
 		printf("error Serv ja existe!\n");
 		exit(1);
 	}
@@ -339,6 +341,7 @@ void *answer_clients(void *data)
 	int n, fc, buy = 0;
 	request r;
 	response resp;
+	notificacao nt;
 	user *u = NULL;
 	item *it = NULL;
 
@@ -402,7 +405,7 @@ void *answer_clients(void *data)
 			break;
 		case ADD:
 			u = getClient(st->u, st->utam, r.pid);
-			if (r.buy.value <= 0)
+			if (r.add.value <= 0)
 			{
 				resp.res = FAILURE;
 				break;
@@ -441,8 +444,14 @@ void *answer_clients(void *data)
 				}
 				it = eliminaItem(it->id, st->i, &(st->itam));
 				resp.value = st->itam;
-				break;
 				// enviar notificaces
+				nt.notType = COMPRA;
+				nt.id = id;
+				nt.preco = it->valor_base;
+				strcpy(nt.ctg, it->categoria);
+				strcpy(nt.nomeI, it->nome);
+				strcpy(nt.nomeU, u->nome);
+				break;
 			}
 			resp.value = st->itam;
 			resp.res = FAILURE;
@@ -463,6 +472,11 @@ void *answer_clients(void *data)
 			resp.value = st->itam;
 			r.request_type = SELL;
 			//  cria notificacaos
+			nt.notType = VENDA;
+			nt.id = id;
+			nt.preco = r.sell.value;
+			strcpy(nt.ctg, r.sell.categoria);
+			strcpy(nt.nomeI, r.sell.nome);
 			break;
 		case TIME:
 			resp.res = SUCCESS;
@@ -488,6 +502,10 @@ void *answer_clients(void *data)
 			printf("\nCliente %d saiu!\n", r.pid);
 			st->u = eliminaUser(st->u, &(st->utam), r.pid);
 			break;
+		case NOTIF:
+			resp.res = SUCCESS;
+			resp.value = st->itam;
+			break;
 		default:
 			printf("tipo de pedido invalido\n");
 			resp.res = FAILURE;
@@ -496,7 +514,7 @@ void *answer_clients(void *data)
 
 		pthread_mutex_unlock(st->mutex);
 
-		if (r.request_type == SELL || r.request_type == BUY || r.request_type == LIST)
+		if (r.request_type == SELL || r.request_type == BUY || r.request_type == LIST || r.request_type == NOTIF)
 		{
 			sprintf(pipe, PIPE_CLIENT, r.pid);
 			fc = open(pipe, O_WRONLY);
@@ -513,6 +531,19 @@ void *answer_clients(void *data)
 				write(fc, &st->i[j], sizeof(item));
 			}
 
+			if (r.request_type == SELL)
+			{
+				union sigval val;
+				for (int j = 0; j < st->utam; j++)
+				{
+					sigqueue(st->u[j].pid, SIGUSR1, val);
+				}
+			}
+			// send notificacao
+			if (r.request_type == NOTIF)
+			{
+				write(fc, &nt, sizeof(notificacao));
+			}
 			close(fc);
 		}
 		else if (r.request_type != EXIT)
