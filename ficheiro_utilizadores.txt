@@ -1,5 +1,5 @@
-daniela ola 61
-tiago adeus 5
+daniela ola 60
+tiago adeus 6
 dani 1234 0
 ola 1234 53
 adeus 1234 0
