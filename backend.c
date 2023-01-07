@@ -298,6 +298,7 @@ prom *eliminaProm(prom *p, int *tam, char *nome)
 	{
 		if (!strcmp(p[j].nome, nome))
 		{
+			kill(p[j].pid , SIGUSR1);
 			for (int i = j; i < ((*tam) - 1); i++)
 				p[i] = p[i + 1];
 			break;
@@ -309,6 +310,8 @@ prom *eliminaProm(prom *p, int *tam, char *nome)
 		free(p);
 		return NULL;
 	}
+
+	
 	prom *a = (prom *)realloc(p, sizeof(prom) * (*tam));
 	
 	if (a == NULL)
@@ -734,6 +737,7 @@ int main()
 
 	printf("Serv is running...\n");
 	int aux = 0;
+	char teste[10] = "";
 	while (1)
 	{
 		printf("\n>>");
@@ -748,18 +752,27 @@ int main()
 		}
 		else if (!strcmp(cmd_request, "users"))
 		{
-			pthread_mutex_lock(&mutex);
+			sscanf(cmd, "%s %s", cmd_request, &teste);
+			if(strcmp(teste, "")!=0){
+				strcpy(teste, "");
+				printf("FAILURE\n");
+				continue;
+			}
 			if (st.utam == 0)
 				printf("Nao existem users para mostrar\n");
 			for (int i = 0; i < st.utam; ++i)
 			{
 				printf("PID: %d\tSaldo: %d\tNome: %s\tN_items: %d\n", st.u[i].pid, getUserBalance(st.u[i].nome), st.u[i].nome, st.u[i].nItem);
 			}
-
-			pthread_mutex_unlock(&mutex);
 		}
 		else if (!strcmp(cmd_request, "list"))
 		{
+			sscanf(cmd, "%s %s", cmd_request, &teste);
+			if(strcmp(teste, "")!=0){
+				strcpy(teste, "");
+				printf("FAILURE\n");
+				continue;
+			}
 			if (st.itam == 0)
 			{
 				printf("Nao existem items a leilao\n");
@@ -771,7 +784,14 @@ int main()
 		}
 		else if (!strcmp(cmd_request, "kick"))
 		{
-			sscanf(cmd, "%s %s", cmd_request, &arg);
+			sscanf(cmd, "%s %s %s", cmd_request, &arg, &teste);
+
+			if(strcmp(teste, "")!=0){
+				strcpy(teste, "");
+				printf("FAILURE\n");
+				continue;
+			}
+
 			int n = kick_cmd(st.u, st.utam, arg);
 			if (n)
 				printf("SUCCESS\n");
@@ -780,7 +800,12 @@ int main()
 		}
 		else if (!strcmp(cmd_request, "prom"))
 		{
-			sscanf(cmd, "%s %d", cmd_request, &aux);
+			sscanf(cmd, "%s %s", cmd_request, &teste);
+			if(strcmp(teste, "")!=0 ){
+				strcpy(teste, "");
+				printf("FAILURE\n");
+				continue;
+			}
 			if (st.ptam == 0)
 				printf("Nao existem promotores disponiveis\n");
 			else if (aux == 0)
@@ -793,13 +818,23 @@ int main()
 		}
 		else if (!strcmp(cmd_request, "cancel"))
 		{
-			sscanf(cmd, "%s %s", cmd_request, &arg);
+			sscanf(cmd, "%s %s %s", cmd_request, &arg, &teste);
+			if(strcmp(teste, "")!=0 || strcmp(arg, "")==0){
+				strcpy(teste, "");
+				printf("FAILURE\n");
+				continue;
+			}
 			st.p = eliminaProm(st.p, &(st.ptam), arg);
 			printf("SUCCESS\n");
 		}
 		else if (!strcmp(cmd_request, "reprom"))
 		{
-			sscanf(cmd, "%s %d", cmd_request, &aux);
+			sscanf(cmd, "%s %s", cmd_request, &teste);
+			if(strcmp(teste, "")!=0){
+				strcpy(teste, "");
+				printf("FAILURE\n");
+				continue;
+			}
 			atualizaFproms(st.p, st.ptam, FPROMS);
 			st.p = leProms(FPROMS, st.p, &(st.ptam));
 			printf("SUCCESS\n");
