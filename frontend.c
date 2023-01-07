@@ -16,14 +16,14 @@ void signal_handler(int sig)
 void signal_notific(int sig)
 {
 	signal_notif = 1;
+	printf("\nTem uma notificacao\nCarregue ENTER para visualizar\n");
 }
 void main(int argc, char *argv[])
 {
 
 	char *cmd = NULL;
-	int c = 0;
 	size_t cmd_size;
-	int amount, destination, n_chars=0;
+	int amount, destination, n_chars = 0;
 	char cmd_request[CMD_SIZE];
 	char pipe[PIPE_SIZE];
 
@@ -34,10 +34,7 @@ void main(int argc, char *argv[])
 	sigaction(SIGPIPE, &sa, NULL);
 	// sigaction(SIGUSR1, &sac, NULL);
 
-	if (c == 0)
-	{
-		signal(SIGUSR1, signal_notific);
-	}
+	signal(SIGUSR1, signal_notific);
 
 	request r;
 	r.pid = getpid();
@@ -85,7 +82,7 @@ void main(int argc, char *argv[])
 			strcpy(r.a.nome, argv[1]);
 			strcpy(r.a.pass, argv[2]);
 		}
-		else if(signal_notif == 0)
+		else if (signal_notif == 0)
 		{
 
 			printf("\nOperation:\n->");
@@ -99,7 +96,6 @@ void main(int argc, char *argv[])
 			}
 			else if (signal_notif == 1)
 			{
-				printf("entrei\n");
 				r.request_type = NOTIF;
 			}
 			else if (!strcmp(cmd_request, "list"))
@@ -214,7 +210,7 @@ void main(int argc, char *argv[])
 			}
 		}
 
-		if (r.request_type != FAIL )
+		if (r.request_type != FAIL)
 		{
 			n = write(fd, &r, sizeof(request));
 		}
@@ -292,16 +288,26 @@ void main(int argc, char *argv[])
 			else if (r.request_type == TIME)
 			{
 				printf("Tempo: %d\n", resp.value);
-			}else if(r.request_type == NOTIF){
+			}
+			else if (r.request_type == NOTIF)
+			{
 				switch (nt.notType)
 				{
 				case VENDA:
 					printf("\nNovo Item a venda!\n");
-					printf("Id: %d Nome: %s Categoria: %s Preco: %d Por vender\n", nt.id, nt.nomeI, nt.ctg, nt.preco);
+					printf("Id: %d Nome: %s Categoria: %s Preco: %d Compra Ja: %d\n", nt.id, nt.nomeI, nt.ctg, nt.preco, nt.compraJa);
 					break;
 				case COMPRA:
+					if (!strcmp(nt.nomeU, "-"))
+					{
+						strcpy(nt.nomeU, "Por Vender");
+					}
 					printf("\nUm item foi comprado!\n");
 					printf("Id: %d Nome: %s Categoria: %s Preco: %d User: %s\n", nt.id, nt.nomeI, nt.ctg, nt.preco, nt.nomeU);
+					break;
+				case PROM:
+					printf("\nNova Promocao ativa!\n");
+					printf("Categoria: %s Preco: %d Tempo: %d\n", nt.ctg, nt.preco, nt.duracao);
 					break;
 				default:
 					break;

@@ -108,15 +108,6 @@ typedef struct response
 	enum RequestResult res;
 	int value;
 	int valido;
-	int notif;
-	enum NotificacaoType notType;
-	int id;
-	char nomeI[20];
-	char nomeU[20];
-	char ctg[20];
-	int preco;
-	int compraJa; 
-
 } response;
 
 typedef struct notificacao{
@@ -127,6 +118,6 @@ typedef struct notificacao{
 	char ctg[20];
 	int preco;
 	int compraJa;
-
+	int duracao;
 }notificacao;
 #endif

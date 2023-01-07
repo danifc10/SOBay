@@ -26,11 +26,12 @@ typedef struct structs
 	prom *p;
 	int ptam;
 	pthread_mutex_t *mutex;
+	notificacao not ;
 } structs;
 
 // Global Var
 static int signal_exit = 0;
-static int signal_notif = 1;
+static int signal_notif = 0;
 static int tempo = 0;
 
 void signal_handler(int sig)
@@ -139,7 +140,7 @@ item *getItem(item *i, int tam, int id)
 }
 
 // verifica se ja terminou o tempo se sim faz o q tem a fazer
-item *verificaLeilao(item *i, int *tam, user *u, int utam)
+int verificaLeilao(item *i, int *tam, user *u, int utam)
 {
 	int time = tempo;
 	for (int j = 0; j < *tam; j++)
@@ -170,11 +171,10 @@ item *verificaLeilao(item *i, int *tam, user *u, int utam)
 					updateUserBalance(u[a].nome, u[a].saldo);
 				}
 			}
-			i = eliminaItem(i[j].id, i, tam);
-			// enviar notificaces
+			return i[j].id;
 		}
 	}
-	return i;
+	return 0;
 }
 
 // configura items para promocao
@@ -299,19 +299,6 @@ void atualizaFproms(prom *p, int tam, char *nome)
 	fclose(f);
 }
 
-void enviaSinal(user *u, int tam, pid_t pid)
-{
-	union sigval sig;
-	for (int i = 0; i < tam; i++)
-	{
-		if (u[i].pid != pid)
-		{
-			sigqueue(u[i].pid, SIGCHLD, sig);
-		}
-	}
-	return;
-}
-
 void *answer_clients(void *data)
 {
 	structs *st = (structs *)data;
@@ -341,7 +328,6 @@ void *answer_clients(void *data)
 	int n, fc, buy = 0;
 	request r;
 	response resp;
-	notificacao nt;
 	user *u = NULL;
 	item *it = NULL;
 
@@ -442,15 +428,16 @@ void *answer_clients(void *data)
 						u[j].saldo += it->compra_ja;
 					}
 				}
-				it = eliminaItem(it->id, st->i, &(st->itam));
+				st->not.id = it->id;
+				st->i = eliminaItem(it->id, st->i, &(st->itam));
 				resp.value = st->itam;
 				// enviar notificaces
-				nt.notType = COMPRA;
-				nt.id = id;
-				nt.preco = it->valor_base;
-				strcpy(nt.ctg, it->categoria);
-				strcpy(nt.nomeI, it->nome);
-				strcpy(nt.nomeU, u->nome);
+				st->not.notType = COMPRA;
+				st->not.preco = it->valor_base;
+				strcpy(st->not.ctg, it->categoria);
+				strcpy(st->not.nomeI, it->nome);
+				strcpy(st->not.nomeU, u->nome);
+				signal_notif = 1;
 				break;
 			}
 			resp.value = st->itam;
@@ -472,11 +459,13 @@ void *answer_clients(void *data)
 			resp.value = st->itam;
 			r.request_type = SELL;
 			//  cria notificacaos
-			nt.notType = VENDA;
-			nt.id = id;
-			nt.preco = r.sell.value;
-			strcpy(nt.ctg, r.sell.categoria);
-			strcpy(nt.nomeI, r.sell.nome);
+			st->not.notType = VENDA;
+			st->not.id = id;
+			st->not.compraJa = r.sell.compra;
+			st->not.preco = r.sell.value;
+			strcpy(st->not.ctg, r.sell.categoria);
+			strcpy(st->not.nomeI, r.sell.nome);
+			signal_notif = 1;
 			break;
 		case TIME:
 			resp.res = SUCCESS;
@@ -514,7 +503,7 @@ void *answer_clients(void *data)
 
 		pthread_mutex_unlock(st->mutex);
 
-		if (r.request_type == SELL || r.request_type == BUY || r.request_type == LIST || r.request_type == NOTIF)
+		if (r.request_type == SELL || r.request_type == BUY || r.request_type == LIST ||r.request_type == NOTIF )
 		{
 			sprintf(pipe, PIPE_CLIENT, r.pid);
 			fc = open(pipe, O_WRONLY);
@@ -523,7 +512,6 @@ void *answer_clients(void *data)
 				printf("error ao abrir pipe cliente\n");
 				exit(1);
 			}
-
 			write(fc, &resp, sizeof(response));
 
 			for (int j = 0; j < st->itam; j++)
@@ -531,18 +519,20 @@ void *answer_clients(void *data)
 				write(fc, &st->i[j], sizeof(item));
 			}
 
-			if (r.request_type == SELL)
+			if (signal_notif && st->not.notType !=PROM)
 			{
 				union sigval val;
 				for (int j = 0; j < st->utam; j++)
 				{
-					sigqueue(st->u[j].pid, SIGUSR1, val);
+					if(st->u[j].pid != r.pid)
+						sigqueue(st->u[j].pid, SIGUSR1, val);
 				}
+				signal_notif = 0;
 			}
-			// send notificacao
+
 			if (r.request_type == NOTIF)
 			{
-				write(fc, &nt, sizeof(notificacao));
+				write(fc, &st->not, sizeof(notificacao));
 			}
 			close(fc);
 		}
@@ -558,9 +548,15 @@ void *answer_clients(void *data)
 			write(fc, &resp, sizeof(response));
 			close(fc);
 		}
+	
 	}
 }
-
+void enviaSinal(user *u, int tam){
+	union sigval val;
+	for(int i = 0; i < tam ; i++){
+		sigqueue(u[i].pid, SIGUSR1, val);
+	}
+}
 void *handler_time(void *data)
 {
 	structs *st = (structs *)data;
@@ -568,7 +564,18 @@ void *handler_time(void *data)
 	{
 		++tempo;
 		sleep(1);
-		st->i = verificaLeilao(st->i, &(st->itam), st->u, st->utam);
+		int aux = verificaLeilao(st->i, &(st->itam), st->u, st->utam);
+		if(aux != 0){
+			item *i = getItem(st->i, st->itam, aux);
+			st->not.id = aux;
+			st->not.preco = i->valor_base;
+			strcpy(st->not.nomeI, i->nome);
+			strcpy(st->not.ctg, i->categoria);
+			strcpy(st->not.nomeU, i->licitador);
+			st->i = eliminaItem(aux, st->i, &(st->itam));
+			st->not.notType = COMPRA;
+			enviaSinal(st->u, st->utam);
+		}
 	}
 }
 
@@ -589,7 +596,12 @@ void *handler_proms(void *data)
 			strcpy(output, recebePromotor(fd));
 			printf("\n%s\n", output);
 			sscanf(output, "%s %d %d", &ctg, &valor, &duracao);
+			strcpy(st->not.ctg, ctg);
+			st->not.notType = PROM;
+			st->not.preco = valor;
+			st->not.duracao = duracao;
 			st->i = apanhaProm(st->i, st->itam, ctg, valor, duracao);
+			enviaSinal(st->u, st->utam);
 			sleep(50);
 		}
 	}
