@@ -18,6 +18,35 @@ void signal_notific(int sig)
 	signal_notif = 1;
 	printf("\nTem uma notificacao\nCarregue ENTER para visualizar\n");
 }
+
+notificacao *eliminaNot(notificacao *a, int *tam, int id)
+{
+	for (int i = 0; i < *tam; i++)
+	{
+		if (i == id)
+		{
+			for (int j = i; j < ((*tam) - 1); j++)
+			{
+				a[j] = a[j + 1];
+			}
+			break;
+		}
+	}
+	--(*tam);
+	/*if (*tam == 0)
+	{
+		free(a);
+		return NULL;
+	}
+	notificacao *c = (notificacao *)realloc(a, sizeof(notificacao) * ((*tam)));
+	if (c == NULL)
+	{
+		printf("error allocating memory\n");
+		exit(1);
+	}*/
+	return a;
+}
+
 void main(int argc, char *argv[])
 {
 
@@ -72,8 +101,10 @@ void main(int argc, char *argv[])
 	int n, value, value2;
 	char argumento[100] = "", teste[100] = "";
 	response resp;
-	notificacao nt;
+	notificacao *nt = NULL;
+	int ntam = 0;
 	int aux = 0;
+	int atualiza = 0;
 	do
 	{
 		if (aux == 0)
@@ -82,13 +113,14 @@ void main(int argc, char *argv[])
 			strcpy(r.a.nome, argv[1]);
 			strcpy(r.a.pass, argv[2]);
 		}
-		else if (signal_notif == 0)
+		else
 		{
-
+			
 			printf("\nOperation:\n->");
 			n_chars = getline(&cmd, &cmd_size, stdin);
 			cmd[n_chars - 1] = '\0';
 			sscanf(cmd, "%s", cmd_request);
+			
 
 			if (!strcmp(cmd_request, "exit") || signal_exit == 1)
 			{
@@ -213,7 +245,9 @@ void main(int argc, char *argv[])
 		if (r.request_type != FAIL)
 		{
 			n = write(fd, &r, sizeof(request));
+
 		}
+
 		if (n == -1 || signal_exit)
 		{
 			if (errno == EPIPE)
@@ -247,9 +281,19 @@ void main(int argc, char *argv[])
 
 				if (r.request_type == NOTIF)
 				{
-					n = read(fc, &nt, sizeof(notificacao));
+					if (ntam != resp.valido)
+					{
+						ntam = resp.valido;
+						nt = (notificacao *)realloc(nt, sizeof(notificacao) * ntam);
+					}
+					for (int i = 0; i < resp.valido; i++)
+					{
+						n = read(fc, &nt[i], sizeof(notificacao));
+					}
+
 					signal_notif = 0;
 				}
+				ntam = resp.valido;
 			}
 			else
 			{
@@ -291,26 +335,31 @@ void main(int argc, char *argv[])
 			}
 			else if (r.request_type == NOTIF)
 			{
-				switch (nt.notType)
+				for (int i = 0; i < resp.valido; i++)
 				{
-				case VENDA:
-					printf("\nNovo Item a venda!\n");
-					printf("Id: %d Nome: %s Categoria: %s Preco: %d Compra Ja: %d\n", nt.id, nt.nomeI, nt.ctg, nt.preco, nt.compraJa);
-					break;
-				case COMPRA:
-					if (!strcmp(nt.nomeU, "-"))
+					if (nt[i].notType == COMPRA)
 					{
-						strcpy(nt.nomeU, "Por Vender");
+						if (!strcmp(nt[i].nomeU, "-"))
+						{
+							strcpy(nt[i].nomeU, "Por Vender");
+							printf("\nDuracao do item terminou!\n");
+						}
+						else
+						{
+							printf("\nUm item foi comprado!\n");
+						}
+						printf("Id: %d Nome: %s Categoria: %s Preco: %d User: %s\n", nt[i].id, nt[i].nomeI, nt[i].ctg, nt[i].preco, nt[i].nomeU);
 					}
-					printf("\nUm item foi comprado!\n");
-					printf("Id: %d Nome: %s Categoria: %s Preco: %d User: %s\n", nt.id, nt.nomeI, nt.ctg, nt.preco, nt.nomeU);
-					break;
-				case PROM:
-					printf("\nNova Promocao ativa!\n");
-					printf("Categoria: %s Preco: %d Tempo: %d\n", nt.ctg, nt.preco, nt.duracao);
-					break;
-				default:
-					break;
+					else if (nt[i].notType == VENDA)
+					{
+						printf("\nNovo item a venda!\n");
+						printf("Id: %d Nome: %s Categoria: %s Preco: %d Compra Ja: %d\n", nt[i].id, nt[i].nomeI, nt[i].ctg, nt[i].preco, nt[i].compraJa);
+					}
+					else if (nt[i].notType == PROM)
+					{
+						printf("\nNova Promocao ativa!\n");
+						printf("Categoria: %s Preco: %d Tempo: %d\n", nt[i].ctg, nt[i].preco, nt[i].duracao);
+					}
 				}
 			}
 		}

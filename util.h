@@ -86,6 +86,7 @@ typedef struct request
 {
 	pid_t pid;
 	enum RequestType request_type;
+	int aux;
 	union
 	{
 		sell_cmd sell;

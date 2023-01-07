@@ -1,5 +1,5 @@
 daniela ola 61
-tiago adeus 39
+tiago adeus 5
 dani 1234 0
 ola 1234 53
 adeus 1234 0
@@ -13,3 +13,4 @@ d4n1 1234 0
 faisca 1234 0
 ole 1234 0
 0 0 0
+

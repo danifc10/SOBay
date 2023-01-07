@@ -1,2 +1,4 @@
-1 tesoura papelaria 20 30 60 daniela -
-2 computador informatica 30 40 60 ola -
+0 0 0 -28 0 -328  
+2 a b 1 2 -353 daniela -
+3 a b 1 2 -325 daniela -
+4 a b 1 2 -24 tiago -
