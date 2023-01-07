@@ -310,6 +310,7 @@ prom *eliminaProm(prom *p, int *tam, char *nome)
 		return NULL;
 	}
 	prom *a = (prom *)realloc(p, sizeof(prom) * (*tam));
+	
 	if (a == NULL)
 	{
 		printf("error allocating memory\n");
@@ -486,6 +487,7 @@ void *answer_clients(void *data)
 						u[j].saldo += it->compra_ja;
 					}
 				}
+				strcpy(it->licitador, u->nome);
 				// enviar notificaces
 				st->not = addNot(st->not, &(st->ntam), COMPRA, it->id, st->i, st->itam, "", 0);
 				st->i = eliminaItem(it->id, st->i, &(st->itam));
@@ -591,6 +593,7 @@ void *answer_clients(void *data)
 					write(fc, &st->not [i], sizeof(notificacao));
 				}
 				count++;
+				//signal_prom = 0;
 			}
 
 			resp.valido = st->ntam;

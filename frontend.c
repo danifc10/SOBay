@@ -339,7 +339,7 @@ void main(int argc, char *argv[])
 				{
 					if (nt[i].notType == COMPRA)
 					{
-						if (!strcmp(nt[i].nomeU, "-"))
+						if ( strcmp(nt[i].nomeU, "-")== 0)
 						{
 							strcpy(nt[i].nomeU, "Por Vender");
 							printf("\nDuracao do item terminou!\n");
