@@ -19,34 +19,6 @@ void signal_notific(int sig)
 	printf("\nTem uma notificacao\nCarregue ENTER para visualizar\n");
 }
 
-notificacao *eliminaNot(notificacao *a, int *tam, int id)
-{
-	for (int i = 0; i < *tam; i++)
-	{
-		if (i == id)
-		{
-			for (int j = i; j < ((*tam) - 1); j++)
-			{
-				a[j] = a[j + 1];
-			}
-			break;
-		}
-	}
-	--(*tam);
-	/*if (*tam == 0)
-	{
-		free(a);
-		return NULL;
-	}
-	notificacao *c = (notificacao *)realloc(a, sizeof(notificacao) * ((*tam)));
-	if (c == NULL)
-	{
-		printf("error allocating memory\n");
-		exit(1);
-	}*/
-	return a;
-}
-
 void main(int argc, char *argv[])
 {
 
@@ -61,15 +33,11 @@ void main(int argc, char *argv[])
 	sa.sa_handler = signal_handler;
 	sigaction(SIGINT, &sa, NULL);
 	sigaction(SIGPIPE, &sa, NULL);
-	// sigaction(SIGUSR1, &sac, NULL);
 
 	signal(SIGUSR1, signal_notific);
 
 	request r;
 	r.pid = getpid();
-
-	item *i = NULL;
-	int item_len = 0;
 
 	sprintf(pipe, PIPE_CLIENT, r.pid);
 	int res = access(pipe, F_OK);
@@ -98,13 +66,16 @@ void main(int argc, char *argv[])
 		exit(1);
 	}
 
-	int n, value, value2;
-	char argumento[100] = "", teste[100] = "";
+	
 	response resp;
 	notificacao *nt = NULL;
 	int ntam = 0;
+	item *i = NULL;
+	int item_len = 0;
+
+	int n, value, value2;
+	char argumento[100] = "", teste[100] = "";
 	int aux = 0;
-	int atualiza = 0;
 	do
 	{
 		if (aux == 0)
@@ -115,7 +86,6 @@ void main(int argc, char *argv[])
 		}
 		else
 		{
-			
 			printf("\nOperation:\n->");
 			n_chars = getline(&cmd, &cmd_size, stdin);
 			cmd[n_chars - 1] = '\0';

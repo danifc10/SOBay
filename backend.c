@@ -258,8 +258,12 @@ int executaPromotor(int fd_p2b[2], char *nome)
 		dup(fd_p2b[1]);
 		close(fd_p2b[0]);
 		close(fd_p2b[1]);
-		execl(nome, nome);
-		sleep(1);
+		int aux = execl(nome, nome);
+		printf("%d", aux);
+		if (aux == -1)
+		{
+			return aux;
+		}
 	}
 	return f;
 }
@@ -296,9 +300,12 @@ prom *eliminaProm(prom *p, int *tam, char *nome)
 {
 	for (int j = 0; j < *tam; j++)
 	{
-		if (!strcmp(p[j].nome, nome))
+		if (strcmp(p[j].nome, nome) == 0)
 		{
-			kill(p[j].pid , SIGUSR1);
+			if (p[j].pid != -1)
+			{
+				kill(p[j].pid, SIGUSR1);
+			}
 			for (int i = j; i < ((*tam) - 1); i++)
 				p[i] = p[i + 1];
 			break;
@@ -311,9 +318,8 @@ prom *eliminaProm(prom *p, int *tam, char *nome)
 		return NULL;
 	}
 
-	
 	prom *a = (prom *)realloc(p, sizeof(prom) * (*tam));
-	
+
 	if (a == NULL)
 	{
 		printf("error allocating memory\n");
@@ -596,7 +602,7 @@ void *answer_clients(void *data)
 					write(fc, &st->not [i], sizeof(notificacao));
 				}
 				count++;
-				//signal_prom = 0;
+				// signal_prom = 0;
 			}
 
 			resp.valido = st->ntam;
@@ -645,13 +651,15 @@ void *handler_time(void *data)
 
 		if (count >= st->utam && signal_prom == 1)
 		{
-			free(st->not);
+			free(st->not );
 			st->not = NULL;
 			st->ntam = 0;
 			count = 0;
 			signal_prom = 0;
-		}else if(count == (st->utam - 1) && signal_prom != 1){
-			free(st->not);
+		}
+		else if (count == (st->utam - 1) && signal_prom != 1)
+		{
+			free(st->not );
 			st->not = NULL;
 			st->ntam = 0;
 			count = 0;
@@ -668,19 +676,19 @@ void *handler_proms(void *data)
 	int fd[2], valor = 0, duracao = 0;
 	int Ppipe = pipe(fd);
 	char output[100], ctg[100];
-	st->p = leProms(FPROMS, st->p, &(st->ptam));
 	while (signal_exit != 1)
 	{
 		for (int j = 0; j < st->ptam; j++)
 		{
 			st->p[j].pid = executaPromotor(fd, st->p[j].nome);
+
 			strcpy(output, recebePromotor(fd));
 			printf("\n%s\n", output);
 			sscanf(output, "%s %d %d", &ctg, &valor, &duracao);
 			st->not = addNot(st->not, &(st->ntam), PROM, duracao, st->i, st->itam, ctg, valor);
 			st->i = apanhaProm(st->i, st->itam, ctg, valor, duracao);
 			enviaSinal(st->u, st->utam);
-			sleep(50);
+			sleep(5);
 		}
 	}
 }
@@ -710,6 +718,7 @@ int main()
 
 	structs st = {NULL, 0, 0, 0, NULL, NULL, 0, &mutex, NULL};
 	st.i = leFicheiroItem(FITEM, st.i, &(st.itam));
+	st.p = leProms(FPROMS, st.p, &(st.ptam));
 	loadUsersFile(FUSERS);
 
 	pthread_t pipe_thread;
@@ -753,7 +762,8 @@ int main()
 		else if (!strcmp(cmd_request, "users"))
 		{
 			sscanf(cmd, "%s %s", cmd_request, &teste);
-			if(strcmp(teste, "")!=0){
+			if (strcmp(teste, "") != 0)
+			{
 				strcpy(teste, "");
 				printf("FAILURE\n");
 				continue;
@@ -768,7 +778,8 @@ int main()
 		else if (!strcmp(cmd_request, "list"))
 		{
 			sscanf(cmd, "%s %s", cmd_request, &teste);
-			if(strcmp(teste, "")!=0){
+			if (strcmp(teste, "") != 0)
+			{
 				strcpy(teste, "");
 				printf("FAILURE\n");
 				continue;
@@ -786,7 +797,8 @@ int main()
 		{
 			sscanf(cmd, "%s %s %s", cmd_request, &arg, &teste);
 
-			if(strcmp(teste, "")!=0){
+			if (strcmp(teste, "") != 0)
+			{
 				strcpy(teste, "");
 				printf("FAILURE\n");
 				continue;
@@ -801,7 +813,8 @@ int main()
 		else if (!strcmp(cmd_request, "prom"))
 		{
 			sscanf(cmd, "%s %s", cmd_request, &teste);
-			if(strcmp(teste, "")!=0 ){
+			if (strcmp(teste, "") != 0)
+			{
 				strcpy(teste, "");
 				printf("FAILURE\n");
 				continue;
@@ -819,7 +832,8 @@ int main()
 		else if (!strcmp(cmd_request, "cancel"))
 		{
 			sscanf(cmd, "%s %s %s", cmd_request, &arg, &teste);
-			if(strcmp(teste, "")!=0 || strcmp(arg, "")==0){
+			if (strcmp(teste, "") != 0 || strcmp(arg, "") == 0)
+			{
 				strcpy(teste, "");
 				printf("FAILURE\n");
 				continue;
@@ -830,7 +844,8 @@ int main()
 		else if (!strcmp(cmd_request, "reprom"))
 		{
 			sscanf(cmd, "%s %s", cmd_request, &teste);
-			if(strcmp(teste, "")!=0){
+			if (strcmp(teste, "") != 0)
+			{
 				strcpy(teste, "");
 				printf("FAILURE\n");
 				continue;
