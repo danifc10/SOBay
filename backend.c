@@ -412,11 +412,18 @@ void *answer_clients(void *data)
 	{
 		if (!n || signal_exit)
 		{
-			free(st->not );
+			free(st->not);
 			saveUsersFile(FUSERS);
-			atualizaFitems(st->i, st->itam, FITEM, tempo);
+			if(st->itam == 0){
+				remove(FITEM);
+			}else{
+				atualizaFitems(st->i, st->itam, FITEM, tempo);
+			}
+			
 			close(fd);
 			closeFrontends(st->u, st->utam);
+			free(st->i);
+			free(st->u);
 			unlink(PIPE_SERVER);
 			pthread_exit(NULL);
 		}

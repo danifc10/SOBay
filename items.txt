@@ -1,3 +1,4 @@
-1 casa alimentacao 2 3 80 daniela -
-2 casa desporto 2 3 80 tiago -
-3 casa papelaria 2 3 80 ola -
+1 tesoura papelaria 5 0 90 daniela -
+2 carregador telemoveis 10 30 100 tiago -
+3 arroz alimentacao 2 0 80 ola -
+4 sapatilhas desporto 20 50 40 daniela -

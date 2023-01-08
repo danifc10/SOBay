@@ -128,7 +128,7 @@ void main(int argc, char *argv[])
 			else if (!strcmp(cmd_request, "licat"))
 			{
 				r.request_type = LICAT;
-				sscanf(cmd, "%s %s", cmd_request, &argumento, &teste);
+				sscanf(cmd, "%s %s %s", cmd_request, &argumento, &teste);
 				if (strcmp(teste, "") != 0 || strcmp(argumento, "") == 0)
 					r.request_type = FAIL;
 				else
@@ -137,7 +137,7 @@ void main(int argc, char *argv[])
 			else if (!strcmp(cmd_request, "lisel"))
 			{
 				r.request_type = LISEL;
-				sscanf(cmd, "%s %s", cmd_request, &argumento, &teste);
+				sscanf(cmd, "%s %s %s", cmd_request, &argumento, &teste);
 				if (strcmp(teste, "") != 0 || strcmp(argumento, "") == 0)
 					r.request_type = FAIL;
 				else
@@ -146,7 +146,8 @@ void main(int argc, char *argv[])
 			else if (!strcmp(cmd_request, "lival"))
 			{
 				r.request_type = LIVAL;
-				sscanf(cmd, "%s %d", cmd_request, &value, &teste);
+				value = -1;
+				sscanf(cmd, "%s %d %s", cmd_request, &value, &teste);
 				if (strcmp(teste, "") != 0 || value == -1)
 					r.request_type = FAIL;
 				else
@@ -167,12 +168,10 @@ void main(int argc, char *argv[])
 				r.request_type = ADD;
 				value = -1;
 				sscanf(cmd, "%s %d %s", cmd_request, &value, &teste);
-				if (strcmp(teste, "") != 0)
+				if (strcmp(teste, "") != 0 || value == -1)
 					r.request_type = FAIL;
 				else
-				{
 					r.add.value = value;
-				}
 			}
 			else if (!strcmp(cmd_request, "buy"))
 			{
