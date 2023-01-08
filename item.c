@@ -163,7 +163,9 @@ void atualizaFitems(item *i, int tam, char *nome, int tempoAtual){
 		return;
 
 	for(int j = 0; j < tam ; j++){
-		i[j].tempo = i[j].tempo - tempoAtual;
+		i[j].tempo =( (i[j].tempoInicio + i[j].tempo) - tempoAtual);
+		
+		
 		if(j == tam -1){
 			fprintf(p, "%d %s %s %d %d %d %s %s", i[j].id, i[j].nome, i[j].categoria, i[j].valor_base, i[j].compra_ja, i[j].tempo, i[j].dono, i[j].licitador);
 		}else{

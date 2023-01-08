@@ -171,9 +171,9 @@ notificacao *addNot(notificacao * not, int *tam, enum NotificacaoType n, int id_
 		strcpy(u[*tam].nomeU, i->licitador);
 		u[*tam].id = i->id;
 	}
-	else if (n == PROM)
+	else if (n == PROM || n == PROM_END)
 	{
-		u[*tam].notType = PROM;
+		u[*tam].notType = n;
 		strcpy(u[*tam].ctg, ctg);
 		u[*tam].duracao = id_duracao;
 		u[*tam].preco = preco;
@@ -273,6 +273,7 @@ prom *leProms(char *nomeFich, prom *p, int *tam)
 {
 	FILE *f;
 	char Linha[100];
+	char nome[100];
 
 	f = fopen(nomeFich, "rt");
 
@@ -285,10 +286,15 @@ prom *leProms(char *nomeFich, prom *p, int *tam)
 	int i = 0;
 	while (!feof(f))
 	{
-		p = (prom *)realloc(p, sizeof(prom) * (i + 1));
 		fgets(Linha, 100, f);
-		sscanf(Linha, "%s", p[i].nome);
-		i++;
+		sscanf(Linha, "%s", nome);
+		if (access(nome, F_OK) == 0)
+		{
+			p = (prom *)realloc(p, sizeof(prom) * (i + 1));
+			strcpy(p[i].nome, nome);
+			//p[i].pid = 0;
+			i++;
+		}
 	}
 	(*tam) = (i);
 	fclose(f);
@@ -408,7 +414,7 @@ void *answer_clients(void *data)
 		{
 			free(st->not );
 			saveUsersFile(FUSERS);
-			atualizaFitems(st->i, (st->itam), FITEM, tempo);
+			atualizaFitems(st->i, st->itam, FITEM, tempo);
 			close(fd);
 			closeFrontends(st->u, st->utam);
 			unlink(PIPE_SERVER);
@@ -641,6 +647,14 @@ void *handler_time(void *data)
 		++tempo;
 		sleep(1);
 		int aux = verificaLeilao(st->i, &(st->itam), st->u, st->utam);
+
+		for(int j = 0; j < st->itam ; j++){
+			if(tempo == st->i[j].tempoProm && st->i[j].tempoProm !=0){
+				st->not = addNot(st->not, &(st->ntam), PROM_END, (tempo - st->i[j].tempoProm), st->i, st->itam, st->i[j].categoria, st->i[j].valorProm);
+				enviaSinal(st->u ,st->utam);
+			}
+		}
+
 		if (aux != 0)
 		{
 			item *i = getItem(st->i, st->itam, aux);
@@ -673,7 +687,7 @@ void *handler_proms(void *data)
 	// lanca proms
 	structs *st = (structs *)data;
 
-	int fd[2], valor = 0, duracao = 0;
+	int fd[2], valor = 0, duracao = 0, x = -1;
 	int Ppipe = pipe(fd);
 	char output[100], ctg[100];
 	while (signal_exit != 1)
@@ -681,14 +695,13 @@ void *handler_proms(void *data)
 		for (int j = 0; j < st->ptam; j++)
 		{
 			st->p[j].pid = executaPromotor(fd, st->p[j].nome);
-
 			strcpy(output, recebePromotor(fd));
 			printf("\n%s\n", output);
 			sscanf(output, "%s %d %d", &ctg, &valor, &duracao);
 			st->not = addNot(st->not, &(st->ntam), PROM, duracao, st->i, st->itam, ctg, valor);
 			st->i = apanhaProm(st->i, st->itam, ctg, valor, duracao);
 			enviaSinal(st->u, st->utam);
-			sleep(5);
+			sleep(50);
 		}
 	}
 }
@@ -717,7 +730,10 @@ int main()
 	}
 
 	structs st = {NULL, 0, 0, 0, NULL, NULL, 0, &mutex, NULL};
-	st.i = leFicheiroItem(FITEM, st.i, &(st.itam));
+	if(access(FITEM, F_OK)== 0){
+		st.i = leFicheiroItem(FITEM, st.i, &(st.itam));
+	}
+	
 	st.p = leProms(FPROMS, st.p, &(st.ptam));
 	loadUsersFile(FUSERS);
 
@@ -754,12 +770,12 @@ int main()
 		cmd[n_chars - 1] = '\0';
 		sscanf(cmd, "%s", cmd_request);
 
-		if (!strcmp(cmd_request, "close") || signal_exit)
+		if (!strcmp(cmd_request, "close") || signal_exit) // close
 		{
 			printf("Closing..\n");
 			break;
 		}
-		else if (!strcmp(cmd_request, "users"))
+		else if (!strcmp(cmd_request, "users")) // users
 		{
 			sscanf(cmd, "%s %s", cmd_request, &teste);
 			if (strcmp(teste, "") != 0)
@@ -775,7 +791,7 @@ int main()
 				printf("PID: %d\tSaldo: %d\tNome: %s\tN_items: %d\n", st.u[i].pid, getUserBalance(st.u[i].nome), st.u[i].nome, st.u[i].nItem);
 			}
 		}
-		else if (!strcmp(cmd_request, "list"))
+		else if (!strcmp(cmd_request, "list")) // list
 		{
 			sscanf(cmd, "%s %s", cmd_request, &teste);
 			if (strcmp(teste, "") != 0)
@@ -793,7 +809,7 @@ int main()
 				mostraItem(st.i, st.itam);
 			}
 		}
-		else if (!strcmp(cmd_request, "kick"))
+		else if (!strcmp(cmd_request, "kick"))  // kick
 		{
 			sscanf(cmd, "%s %s %s", cmd_request, &arg, &teste);
 
@@ -809,8 +825,8 @@ int main()
 				printf("SUCCESS\n");
 			else
 				printf("FAILURE\n");
-		}
-		else if (!strcmp(cmd_request, "prom"))
+		} 
+		else if (!strcmp(cmd_request, "prom")) // prom
 		{
 			sscanf(cmd, "%s %s", cmd_request, &teste);
 			if (strcmp(teste, "") != 0)
@@ -825,11 +841,12 @@ int main()
 			{
 				for (int i = 0; i < st.ptam; i++)
 				{
-					printf("Nome: %s\n", st.p[i].nome);
+					if(st.p[i].pid != 0)
+						printf("Nome: %s\n", st.p[i].nome);
 				}
 			}
-		}
-		else if (!strcmp(cmd_request, "cancel"))
+		} 
+		else if (!strcmp(cmd_request, "cancel"))  // cancel
 		{
 			sscanf(cmd, "%s %s %s", cmd_request, &arg, &teste);
 			if (strcmp(teste, "") != 0 || strcmp(arg, "") == 0)
@@ -841,7 +858,7 @@ int main()
 			st.p = eliminaProm(st.p, &(st.ptam), arg);
 			printf("SUCCESS\n");
 		}
-		else if (!strcmp(cmd_request, "reprom"))
+		else if (!strcmp(cmd_request, "reprom"))  // reprom
 		{
 			sscanf(cmd, "%s %s", cmd_request, &teste);
 			if (strcmp(teste, "") != 0)
@@ -852,6 +869,9 @@ int main()
 			}
 			atualizaFproms(st.p, st.ptam, FPROMS);
 			st.p = leProms(FPROMS, st.p, &(st.ptam));
+			for(int i = 0; i < st.ptam ; i++){
+				printf("Nome: %s\n", st.p[i].nome);
+			}
 			printf("SUCCESS\n");
 		}
 		else

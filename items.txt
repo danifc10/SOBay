@@ -1,2 +1,3 @@
-0 0 0 -34 0 -123  
-2 a b 1 2 -120 ola -
+1 casa alimentacao 2 3 80 daniela -
+2 casa desporto 2 3 80 tiago -
+3 casa papelaria 2 3 80 ola -

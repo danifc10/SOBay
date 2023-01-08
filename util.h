@@ -101,7 +101,8 @@ enum NotificacaoType
 {
 	VENDA,
 	COMPRA,
-	PROM
+	PROM, 
+	PROM_END
 };
 
 typedef struct response

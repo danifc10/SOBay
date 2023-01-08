@@ -329,6 +329,9 @@ void main(int argc, char *argv[])
 					{
 						printf("\nNova Promocao ativa!\n");
 						printf("Categoria: %s Preco: %d Tempo: %d\n", nt[i].ctg, nt[i].preco, nt[i].duracao);
+					}else if(nt[i].notType == PROM_END){
+						printf("\nPromocao terminou!\n");
+						printf("Categoria: %s Preco: %d Tempo: %d\n", nt[i].ctg, nt[i].preco, nt[i].duracao);
 					}
 				}
 			}
