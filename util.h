@@ -19,9 +19,6 @@
 #define MAX_ITEMS 30
 #define MAX_PROMS 10
 #define PIPE_SIZE 20
-#define FUSERS "ficheiro_utilizadores.txt"
-#define FITEM "items.txt"
-#define FPROMS "ficheiro_promotores.txt"
 
 enum RequestType
 {

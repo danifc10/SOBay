@@ -1,4 +1,2 @@
-1 tesoura papelaria 5 0 90 daniela -
-2 carregador telemoveis 10 30 100 tiago -
-3 arroz alimentacao 2 0 80 ola -
-4 sapatilhas desporto 20 50 40 daniela -
+1 tespura papelaria 1 0 50 tiago -
+2 sapatilhas desporto 30 50 70 ola -

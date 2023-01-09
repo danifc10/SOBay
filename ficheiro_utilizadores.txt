@@ -1,4 +1,4 @@
-daniela ola 60
+daniela ola 40
 tiago adeus 40
 dani 1234 0
 ola 1234 53

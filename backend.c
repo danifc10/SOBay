@@ -31,6 +31,9 @@ typedef struct structs
 } structs;
 
 // Global Var
+char *FUSERS;
+char *FPROMOTERS;
+char *FITEMS;
 static int signal_exit = 0;
 static int signal_notif = 0;
 static int signal_prom = 0;
@@ -292,7 +295,6 @@ prom *leProms(char *nomeFich, prom *p, int *tam)
 		{
 			p = (prom *)realloc(p, sizeof(prom) * (i + 1));
 			strcpy(p[i].nome, nome);
-			//p[i].pid = 0;
 			i++;
 		}
 	}
@@ -412,14 +414,17 @@ void *answer_clients(void *data)
 	{
 		if (!n || signal_exit)
 		{
-			free(st->not);
+			free(st->not );
 			saveUsersFile(FUSERS);
-			if(st->itam == 0){
-				remove(FITEM);
-			}else{
-				atualizaFitems(st->i, st->itam, FITEM, tempo);
+			if (st->itam == 0)
+			{
+				remove(FITEMS);
 			}
-			
+			else
+			{
+				atualizaFitems(st->i, st->itam, FITEMS, tempo);
+			}
+
 			close(fd);
 			closeFrontends(st->u, st->utam);
 			free(st->i);
@@ -510,12 +515,13 @@ void *answer_clients(void *data)
 					}
 				}
 				strcpy(it->licitador, u->nome);
-				// enviar notificaces
+				// cria notificacao
 				st->not = addNot(st->not, &(st->ntam), COMPRA, it->id, st->i, st->itam, "", 0);
 				st->i = eliminaItem(it->id, st->i, &(st->itam));
 				resp.value = st->itam;
 				resp.valido = st->ntam;
 				signal_notif = 1;
+				count = 0;
 				break;
 			}
 			resp.value = st->itam;
@@ -564,11 +570,11 @@ void *answer_clients(void *data)
 			resp.res = SUCCESS;
 			break;
 		case EXIT:
-			printf("\nCliente %d saiu!\n", r.pid);
+			u = getClient(st->u, st->utam, r.pid);
+			printf("\nCliente %s saiu!\n", u->nome);
 			st->u = eliminaUser(st->u, &(st->utam), r.pid);
 			break;
 		case NOTIF:
-
 			resp.res = SUCCESS;
 			resp.value = st->itam;
 			resp.valido = st->ntam;
@@ -615,7 +621,6 @@ void *answer_clients(void *data)
 					write(fc, &st->not [i], sizeof(notificacao));
 				}
 				count++;
-				// signal_prom = 0;
 			}
 
 			resp.valido = st->ntam;
@@ -655,10 +660,12 @@ void *handler_time(void *data)
 		sleep(1);
 		int aux = verificaLeilao(st->i, &(st->itam), st->u, st->utam);
 
-		for(int j = 0; j < st->itam ; j++){
-			if(tempo == st->i[j].tempoProm && st->i[j].tempoProm !=0){
+		for (int j = 0; j < st->itam; j++)
+		{
+			if (tempo == st->i[j].tempoProm && st->i[j].tempoProm != 0)
+			{
 				st->not = addNot(st->not, &(st->ntam), PROM_END, (tempo - st->i[j].tempoProm), st->i, st->itam, st->i[j].categoria, st->i[j].valorProm);
-				enviaSinal(st->u ,st->utam);
+				enviaSinal(st->u, st->utam);
 			}
 		}
 
@@ -691,7 +698,6 @@ void *handler_time(void *data)
 
 void *handler_proms(void *data)
 {
-	// lanca proms
 	structs *st = (structs *)data;
 
 	int fd[2], valor = 0, duracao = 0, x = -1;
@@ -713,6 +719,7 @@ void *handler_proms(void *data)
 	}
 }
 
+
 int main()
 {
 	setbuf(stdout, NULL);
@@ -720,13 +727,17 @@ int main()
 	size_t n_chars, cmd_size;
 	char cmd_request[100];
 	char arg[100];
-
+	
 	struct sigaction sa;
 
 	sa.sa_handler = signal_handler;
 	sa.sa_flags = SA_SIGINFO;
 	sigaction(SIGUSR1, &sa, NULL);
 	sigaction(SIGINT, &sa, NULL);
+	
+	FUSERS = getenv("FUSERS");
+	FPROMOTERS = getenv("FPROMOTERS");
+	FITEMS = getenv("FITEMS");
 
 	pthread_mutex_t mutex;
 	int res = pthread_mutex_init(&mutex, NULL);
@@ -737,11 +748,12 @@ int main()
 	}
 
 	structs st = {NULL, 0, 0, 0, NULL, NULL, 0, &mutex, NULL};
-	if(access(FITEM, F_OK)== 0){
-		st.i = leFicheiroItem(FITEM, st.i, &(st.itam));
+
+	if (access(FITEMS, F_OK) == 0)
+	{
+		st.i = leFicheiroItem(FITEMS, st.i, &(st.itam));
 	}
-	
-	st.p = leProms(FPROMS, st.p, &(st.ptam));
+	st.p = leProms(FPROMOTERS, st.p, &(st.ptam));
 	loadUsersFile(FUSERS);
 
 	pthread_t pipe_thread;
@@ -816,7 +828,7 @@ int main()
 				mostraItem(st.i, st.itam);
 			}
 		}
-		else if (!strcmp(cmd_request, "kick"))  // kick
+		else if (!strcmp(cmd_request, "kick")) // kick
 		{
 			sscanf(cmd, "%s %s %s", cmd_request, &arg, &teste);
 
@@ -832,7 +844,7 @@ int main()
 				printf("SUCCESS\n");
 			else
 				printf("FAILURE\n");
-		} 
+		}
 		else if (!strcmp(cmd_request, "prom")) // prom
 		{
 			sscanf(cmd, "%s %s", cmd_request, &teste);
@@ -848,12 +860,12 @@ int main()
 			{
 				for (int i = 0; i < st.ptam; i++)
 				{
-					if(st.p[i].pid != 0)
+					if (st.p[i].pid != 0)
 						printf("Nome: %s\n", st.p[i].nome);
 				}
 			}
-		} 
-		else if (!strcmp(cmd_request, "cancel"))  // cancel
+		}
+		else if (!strcmp(cmd_request, "cancel")) // cancel
 		{
 			sscanf(cmd, "%s %s %s", cmd_request, &arg, &teste);
 			if (strcmp(teste, "") != 0 || strcmp(arg, "") == 0)
@@ -865,7 +877,7 @@ int main()
 			st.p = eliminaProm(st.p, &(st.ptam), arg);
 			printf("SUCCESS\n");
 		}
-		else if (!strcmp(cmd_request, "reprom"))  // reprom
+		else if (!strcmp(cmd_request, "reprom")) // reprom
 		{
 			sscanf(cmd, "%s %s", cmd_request, &teste);
 			if (strcmp(teste, "") != 0)
@@ -874,11 +886,8 @@ int main()
 				printf("FAILURE\n");
 				continue;
 			}
-			atualizaFproms(st.p, st.ptam, FPROMS);
-			st.p = leProms(FPROMS, st.p, &(st.ptam));
-			for(int i = 0; i < st.ptam ; i++){
-				printf("Nome: %s\n", st.p[i].nome);
-			}
+			atualizaFproms(st.p, st.ptam, FPROMOTERS);
+			st.p = leProms(FPROMOTERS, st.p, &(st.ptam));
 			printf("SUCCESS\n");
 		}
 		else

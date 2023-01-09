@@ -1,6 +1,5 @@
 #include "util.h"
 #include "item.h"
-
 #define CMD_SIZE 100
 
 // Global Var
@@ -66,7 +65,6 @@ void main(int argc, char *argv[])
 		exit(1);
 	}
 
-	
 	response resp;
 	notificacao *nt = NULL;
 	int ntam = 0;
@@ -76,6 +74,7 @@ void main(int argc, char *argv[])
 	int n, value, value2;
 	char argumento[100] = "", teste[100] = "";
 	int aux = 0;
+
 	do
 	{
 		if (aux == 0)
@@ -90,7 +89,6 @@ void main(int argc, char *argv[])
 			n_chars = getline(&cmd, &cmd_size, stdin);
 			cmd[n_chars - 1] = '\0';
 			sscanf(cmd, "%s", cmd_request);
-			
 
 			if (!strcmp(cmd_request, "exit") || signal_exit == 1)
 			{
@@ -214,7 +212,6 @@ void main(int argc, char *argv[])
 		if (r.request_type != FAIL)
 		{
 			n = write(fd, &r, sizeof(request));
-
 		}
 
 		if (n == -1 || signal_exit)
@@ -308,7 +305,7 @@ void main(int argc, char *argv[])
 				{
 					if (nt[i].notType == COMPRA)
 					{
-						if ( strcmp(nt[i].nomeU, "-")== 0)
+						if (strcmp(nt[i].nomeU, "-") == 0)
 						{
 							strcpy(nt[i].nomeU, "Por Vender");
 							printf("\nDuracao do item terminou!\n");
@@ -328,7 +325,9 @@ void main(int argc, char *argv[])
 					{
 						printf("\nNova Promocao ativa!\n");
 						printf("Categoria: %s Preco: %d Tempo: %d\n", nt[i].ctg, nt[i].preco, nt[i].duracao);
-					}else if(nt[i].notType == PROM_END){
+					}
+					else if (nt[i].notType == PROM_END)
+					{
 						printf("\nPromocao terminou!\n");
 						printf("Categoria: %s Preco: %d Tempo: %d\n", nt[i].ctg, nt[i].preco, nt[i].duracao);
 					}
