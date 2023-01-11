@@ -514,6 +514,7 @@ void *answer_clients(void *data)
 						u[j].saldo += it->compra_ja;
 					}
 				}
+				updateUserBalance(u->nome, u->saldo);
 				strcpy(it->licitador, u->nome);
 				// cria notificacao
 				st->not = addNot(st->not, &(st->ntam), COMPRA, it->id, st->i, st->itam, "", 0);
