@@ -1,2 +1,0 @@
-1 tespura papelaria 1 0 50 tiago -
-2 sapatilhas desporto 30 50 70 ola -
