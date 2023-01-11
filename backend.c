@@ -512,9 +512,11 @@ void *answer_clients(void *data)
 					if (!strcmp(it->dono, u[j].nome))
 					{
 						u[j].saldo += it->compra_ja;
+						updateUserBalance(u[j].nome, u[j].saldo);
 					}
 				}
 				updateUserBalance(u->nome, u->saldo);
+				
 				strcpy(it->licitador, u->nome);
 				// cria notificacao
 				st->not = addNot(st->not, &(st->ntam), COMPRA, it->id, st->i, st->itam, "", 0);
