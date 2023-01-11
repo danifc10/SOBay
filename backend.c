@@ -492,6 +492,7 @@ void *answer_clients(void *data)
 		case BUY:
 			u = getClient(st->u, st->utam, r.pid);
 			it = getItem(st->i, st->itam, r.buy.id);
+			printf("saldo:%d", getUserBalance(u->nome));
 			valido = compraItem(st->i, r.buy.id, r.buy.value, u->nome, getUserBalance(u->nome), &(st->itam));
 			if (valido == 1) // licita
 			{
@@ -506,6 +507,7 @@ void *answer_clients(void *data)
 			{
 				resp.res = SUCCESS;
 				u->nItem++;
+				u->saldo = getUserBalance(u->nome);
 				u->saldo -= it->compra_ja;
 				for (int j = 0; j < st->utam; j++)
 				{
@@ -513,10 +515,10 @@ void *answer_clients(void *data)
 					{
 						u[j].saldo += it->compra_ja;
 						updateUserBalance(u[j].nome, u[j].saldo);
+						
 					}
 				}
-				updateUserBalance(u->nome, u->saldo);
-				
+				updateUserBalance(u->nome, u->saldo);		
 				strcpy(it->licitador, u->nome);
 				// cria notificacao
 				st->not = addNot(st->not, &(st->ntam), COMPRA, it->id, st->i, st->itam, "", 0);
